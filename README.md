@@ -3,80 +3,99 @@ Variabilidade espaçotemporal da emissão de GEE e a pecuária Brasileira
 Oliveira PHM; Panosso AR
 2024-03-28
 
-<!-- ## CARREGANDO OS PACOTES -->
-<!-- ```{r} -->
-<!-- library(tidyverse) -->
-<!-- library(gstat) -->
-<!-- library(skimr) -->
-<!-- library(ggsci) -->
-<!-- library(geobr) -->
-<!-- source("../R/my-function.R") -->
-<!-- ``` -->
-<!-- ## IMPORTANDO A BASE DE DADOS  -->
-<!-- ```{r} -->
-<!-- brazil_ids <- read_rds("../data/df_nome.rds") -->
-<!-- nomes_uf <- c(brazil_ids$nome_uf %>% unique(),"Brazil") -->
-<!-- dados2 <- read_rds('../data/emissions_sources.rds') -->
-<!-- ``` -->
-<!-- ## CARACTERIZANDO MUNICÍPIO -->
-<!-- ```{r} -->
-<!-- city <- geobr::read_municipality( -->
-<!--   showProgress = FALSE) -->
-<!-- cities <- city  -->
-<!-- ``` -->
-<!-- ```{r} -->
-<!-- # DADOS IBGE: -->
-<!-- # Quantidade de Cabeças de MS: 18433728 -->
-<!-- # Quantidade de Cabeças de MT: 34246313 -->
-<!-- # Quantidade de Cabeças de MG: 22993105 -->
-<!-- # Quantidade de Cabeças de GO: 24410182 -->
-<!-- # Quantidade de Cabeças de PA: 24791060 -->
-<!-- # Quantidade de municípios de MS: 79 -->
-<!-- # Quantidade de municípios de MT: 141 -->
-<!-- # Quantidade de municípios de MG: 853 -->
-<!-- # Quantidade de municípios de GO: 246 -->
-<!-- # Quantidade de municípios de PA: 144 -->
-<!-- estado <- 'GO' -->
-<!-- quant_head <- 24410182 -->
-<!-- dados2 %>% -->
-<!--   filter(year == 2022, -->
-<!--          str_detect(activity_units, 'animal'), -->
-<!--          # sector_name == 'agriculture', -->
-<!--          !source_name %in% nomes_uf, -->
-<!--          sigla_uf == estado, -->
-<!--          gas == 'co2e_100yr') %>% -->
-<!--   group_by(sigla_uf) %>%                  #!! -->
-<!--   summarise( -->
-<!--     emission_total = sum(emissions_quantity)/1e6, -->
-<!--     mean_head = sum(emissions_quantity)/quant_head -->
-<!--     ) %>% -->
-<!--   arrange(- emission_total) -->
-<!-- ``` -->
-<!-- ## CRIANDO TEMA GRAFICO -->
-<!-- ```{r} -->
-<!-- my_theme <- theme( -->
-<!--        # axis.text.x = element_text(size = rel(1.25)), -->
-<!--         axis.title.x = element_text(size = rel(1.4)), -->
-<!--        # axis.text.y = element_text(size = rel(1.3)), -->
-<!--         axis.title.y = element_text(size = rel(1.4)), -->
-<!--         legend.text = element_text(size = rel(0.9)), -->
-<!--        # legend.title = element_text(size = rel(1.7)), -->
-<!--        title = element_text(face = 'bold'), -->
-<!--        legend.position = "top", -->
-<!--        legend.background = element_rect(fill = "#fffff0", color = "black")) -->
-<!-- my_theme_add <- function(.my_theme){ -->
-<!--  theme( -->
-<!--        # axis.text.x = element_text(size = rel(1.25)), -->
-<!--         axis.title.x = element_text(size = rel(1.4)), -->
-<!--        # axis.text.y = element_text(size = rel(1.3)), -->
-<!--         axis.title.y = element_text(size = rel(1.4)), -->
-<!--         legend.text = element_text(size = rel(0.9)), -->
-<!--        # legend.title = element_text(size = rel(1.7)), -->
-<!--        title = element_text(face = 'bold'), -->
-<!--        legend.position = "top", -->
-<!--        legend.background = element_rect(fill = "transparent", color = "black")) -->
-<!-- } -->
-<!-- ``` -->
+## CARREGANDO OS PACOTES
+
+``` r
+library(tidyverse)
+library(gstat)
+library(skimr)
+library(ggsci)
+library(geobr)
+source("R/my-function.R")
+```
+
+## IMPORTANDO A BASE DE DADOS
+
+``` r
+brazil_ids <- read_rds("data/df_nome.rds")
+nomes_uf <- c(brazil_ids$nome_uf %>% unique(),"Brazil")
+dados2 <- read_rds('data/emissions_sources.rds')
+```
+
+## CARACTERIZANDO MUNICÍPIO
+
+``` r
+city <- geobr::read_municipality(
+  showProgress = FALSE)
+
+cities <- city
+```
+
+``` r
+# DADOS IBGE:
+# Quantidade de Cabeças de MS: 18433728
+# Quantidade de Cabeças de MT: 34246313
+# Quantidade de Cabeças de MG: 22993105
+# Quantidade de Cabeças de GO: 24410182
+# Quantidade de Cabeças de PA: 24791060
+
+# Quantidade de municípios de MS: 79
+# Quantidade de municípios de MT: 141
+# Quantidade de municípios de MG: 853
+# Quantidade de municípios de GO: 246
+# Quantidade de municípios de PA: 144
+
+estado <- 'GO'
+quant_head <- 24410182
+
+dados2 %>%
+  filter(year == 2022,
+         str_detect(activity_units, 'animal'),
+         # sector_name == 'agriculture',
+         !source_name %in% nomes_uf,
+         sigla_uf == estado,
+         gas == 'co2e_100yr') %>%
+  group_by(sigla_uf) %>%                  #!!
+  summarise(
+    emission_total = sum(emissions_quantity)/1e6,
+    mean_head = sum(emissions_quantity)/quant_head
+    ) %>%
+  arrange(- emission_total)
+```
+
+    ## # A tibble: 1 × 3
+    ##   sigla_uf emission_total mean_head
+    ##   <chr>             <dbl>     <dbl>
+    ## 1 GO                 36.9      1.51
+
+## CRIANDO TEMA GRAFICO
+
+``` r
+my_theme <- theme(
+       # axis.text.x = element_text(size = rel(1.25)),
+        axis.title.x = element_text(size = rel(1.4)),
+       # axis.text.y = element_text(size = rel(1.3)),
+        axis.title.y = element_text(size = rel(1.4)),
+        legend.text = element_text(size = rel(0.9)),
+       # legend.title = element_text(size = rel(1.7)),
+       title = element_text(face = 'bold'),
+       legend.position = "top",
+       legend.background = element_rect(fill = "#fffff0", color = "black"))
+
+my_theme_add <- function(.my_theme){
+ theme(
+       # axis.text.x = element_text(size = rel(1.25)),
+        axis.title.x = element_text(size = rel(1.4)),
+       # axis.text.y = element_text(size = rel(1.3)),
+        axis.title.y = element_text(size = rel(1.4)),
+        legend.text = element_text(size = rel(0.9)),
+       # legend.title = element_text(size = rel(1.7)),
+       title = element_text(face = 'bold'),
+       legend.position = "top",
+       legend.background = element_rect(fill = "transparent", color = "black"))
+}
+```
+
 <!-- ## MAPEAR  -->
 <!-- ### CONTRUINDO MAPA COM CLASSES  -->
 <!-- ```{r} -->
