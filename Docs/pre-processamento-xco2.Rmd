@@ -25,7 +25,7 @@ source("../R/polis.R")
 
 
 ```{r}
-fco2r::oco2_br %>% 
+fco2r::oco2_br %>% glimpse()
   dplyr::mutate(
     xco2 = xco2_moles_mole_1*1e06,
     data = lubridate::ymd_hms(time_yyyymmddhhmmss),
