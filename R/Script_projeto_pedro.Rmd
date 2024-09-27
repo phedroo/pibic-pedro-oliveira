@@ -74,7 +74,7 @@ my_theme_add <- function(.my_theme){
 ### CONTRUINDO MAPA COM CLASSES 
 ```{r}
 #my_state <- "MS" ### <-
-estados <- c("PA", "MS", "MG", "MT", "GO")
+estados <- c("PA", "MS", "MG", "MT", "GO", "SP", "PR", "RS", "SC")
 my_plot_map <- function(.estados){
   city %>%  
   # select(abbrev_state) %>%
@@ -124,7 +124,7 @@ map(estados,my_plot_map)
 ```{r}
 
 # estado <- "MG" ### <-
-# estados <- c("MS", "PA", "GO", "MT", "MG")
+# estados <- c("MS", "PA", "GO", "MT", "MG", "SP", "PR", "RS", "SC")
 # 
 # my_plot_map_join <- function(.estados){
 #   left_join(city %>% filter(abbrev_state == .estados),
@@ -621,7 +621,7 @@ dados2 %>%
 ## IMPORTAR DADOS IBGE
 *Não foram utilizados
 ```{r}
-ibge <- read.csv('../data/ibge2022.csv', sep = ',')
+# ibge <- read.csv('../data/ibge2022.csv', sep = ',')
 ```
 
 ## TESTANDO FAZER EMISSÃO MEDIA POR CABEÇA DE GADO COM DADOS IBGE
@@ -658,59 +658,59 @@ ibge <- read.csv('../data/ibge2022.csv', sep = ',')
 
 # Tentativa faiada 
 
-estados <- c("PA", "MS", "MG", "MT", "GO")
-
-ibge2 <- ibge |> 
-  rename(
-    sigla_uf = localidade
-  ) |> 
-  mutate(
-    sigla_uf = case_when(
-      sigla_uf == 'Mato Grosso do Sul'~'MS',
-      sigla_uf == 'Mato Grosso'~'MT',
-      sigla_uf == 'Minas Gerais'~'MG',
-      sigla_uf == 'Goiás'~'GO',
-      sigla_uf == 'Pará'~'PA'
-    )
-  ) |> 
-  filter(
-    sigla_uf %in% estados
-  )
-
-states <- c('Pará', 'Mato Grosso do Sul', 'Mato Grosso', 'Minas Gerais', 'Goiás')
-
-full_join(ibge %>% filter(localidade %in% states),
-          dados2 |>
-            filter(year == 2022,
-         str_detect(activity_units, 'animal'),
-         !source_name %in% nomes_uf,
-         sigla_uf == states,
-         gas == 'co2e_100yr') %>%
-       group_by(sigla_uf, emissions_quantity) %>%
-       summarise(emissions_quantity = sum(emissions_quantity, na.rm = T)) %>%
-       rename(localidade = sigla_uf),
-       by = 'localidade'
-)
-
-
-# Tentativa faiada
-
-full_join(ibge2, dados2, by = 'sigla_uf') |>
-  # select(year, activity_units, gas, source_name, sigla_uf, gas, quantidade, emissions_quantity) |> 
-  filter(year == 2022,
-         str_detect(activity_units, 'animal'),
-         !source_name %in% nomes_uf,
-         sigla_uf %in% estados,
-         gas == 'co2e_100yr') |>
-  group_by(sigla_uf) |>
-  # mutate(
-  #   emissions_per_head = emissions_quantity/quantidade
-  # ) |>
-  summarise(
-    emissions_total = sum(emissions_quantity)/1e6
-  ) |>
-  # mutate(
-  #   emissions_per_head = emissions_quantity/quantidade
-  # ) |> 
-  arrange(-emissions_total)
+# estados <- c("PA", "MS", "MG", "MT", "GO")
+# 
+# ibge2 <- ibge |> 
+#   rename(
+#     sigla_uf = localidade
+#   ) |> 
+#   mutate(
+#     sigla_uf = case_when(
+#       sigla_uf == 'Mato Grosso do Sul'~'MS',
+#       sigla_uf == 'Mato Grosso'~'MT',
+#       sigla_uf == 'Minas Gerais'~'MG',
+#       sigla_uf == 'Goiás'~'GO',
+#       sigla_uf == 'Pará'~'PA'
+#     )
+#   ) |> 
+#   filter(
+#     sigla_uf %in% estados
+#   )
+# 
+# states <- c('Pará', 'Mato Grosso do Sul', 'Mato Grosso', 'Minas Gerais', 'Goiás')
+# 
+# full_join(ibge %>% filter(localidade %in% states),
+#           dados2 |>
+#             filter(year == 2022,
+#          str_detect(activity_units, 'animal'),
+#          !source_name %in% nomes_uf,
+#          sigla_uf == states,
+#          gas == 'co2e_100yr') %>%
+#        group_by(sigla_uf, emissions_quantity) %>%
+#        summarise(emissions_quantity = sum(emissions_quantity, na.rm = T)) %>%
+#        rename(localidade = sigla_uf),
+#        by = 'localidade'
+# )
+# 
+# 
+# # Tentativa faiada
+# 
+# full_join(ibge2, dados2, by = 'sigla_uf') |>
+#   # select(year, activity_units, gas, source_name, sigla_uf, gas, quantidade, emissions_quantity) |> 
+#   filter(year == 2022,
+#          str_detect(activity_units, 'animal'),
+#          !source_name %in% nomes_uf,
+#          sigla_uf %in% estados,
+#          gas == 'co2e_100yr') |>
+#   group_by(sigla_uf) |>
+#   # mutate(
+#   #   emissions_per_head = emissions_quantity/quantidade
+#   # ) |>
+#   summarise(
+#     emissions_total = sum(emissions_quantity)/1e6
+#   ) |>
+#   # mutate(
+#   #   emissions_per_head = emissions_quantity/quantidade
+#   # ) |> 
+#   arrange(-emissions_total)
 ```
