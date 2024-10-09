@@ -1,4 +1,4 @@
-Variabilidade espaçotemporal da emissão de GEE e a pecuária Brasileira
+Variabilidade espaçotemporal da emissão de GEE e sua relação com a pecuária brasileira
 ================
 Oliveira PHM; Panosso AR
 2024-03-28
