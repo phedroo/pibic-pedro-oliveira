@@ -17,9 +17,9 @@ library(tidyverse)
 library(raster)
 library(fco2r)
 library(sp)
-source("../R/minhas-funcoes.R")
-source("../R/meu-tema.R")
-source("../R/polis.R")
+# source("../R/minhas-funcoes.R")
+# source("../R/meu-tema.R")
+# source("../R/polis.R")
 ```
 
 
@@ -81,7 +81,7 @@ oco2_br <- fco2r::oco2_br %>%
 
 ```{r}
 oco2_br %>%
-  filter(year %in% 2015:2020) %>%
+  filter(year %in% 2015:2021) %>%
   group_by(year, month_year) %>%
   summarise(xco2_mean = mean(xco2, na.rm =TRUE)) %>%
   ggplot(aes(x=month_year,y=xco2_mean,
@@ -97,13 +97,11 @@ oco2_br %>%
 ```
 
 
-
-
 Existe uma tendência de aumento monotônica mundial da concentração de CO~2~ na atmosfera, assim, ela deve ser modelada para obtermos **β~1~** para ser considerado o padrão para comparação às tendências  de uma determinada região. Devido à periodicidade de retorno do satélite em um ponto (ao redor de 16 dias) os dados devem ser agrupados pelo mês dentro de um determinado ano.
 
 
 ```{r, warning=FALSE, error=FALSE, message=FALSE}
-oco2_br %>% 
+data_set %>% 
   filter(year %in% 2014:2020) %>% 
   group_by(day_month) %>% 
   summarise(xco2_mean = mean(xco2, na.rm =TRUE)) %>% 
@@ -118,10 +116,13 @@ oco2_br %>%
 
 
 ```{r}
-oco2_br %>%
+data_set %>%
   filter(year %in% 2015:2020) %>%
-  group_by(year, month_year) %>%
+  group_by(year, month) %>%
   summarise(xco2_mean = mean(xco2, na.rm =TRUE)) %>%
+  mutate(
+    month_year = lubridate::make_date(year, month, 1)
+  ) |> 
   ggplot(aes(x=month_year,y=xco2_mean,
                                fill=forcats::as_factor(year))) +
   geom_point(shape=21,color="black") +
@@ -130,7 +131,8 @@ oco2_br %>%
   facet_wrap(~year,scales = "free")+
   ggpubr::stat_regline_equation(aes(
   label =  paste(..eq.label.., ..rr.label.., sep = "*plain(\",\")~~"))) +
-  theme_bw()
+  theme_bw() +
+  theme(legend.position = "none")
 ```
 
 A próxima operação é selecionar na base de dados somente os pontos pertencentes ao território brasileiro. Assim vamos utilizar o pacote `{geobr}` para criarmos os filtros a partir dos polígonos das diferentes regiões do Brasil.
