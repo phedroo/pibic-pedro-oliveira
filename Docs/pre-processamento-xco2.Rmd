@@ -22,6 +22,39 @@ source("../R/meu-tema.R")
 source("../R/polis.R")
 ```
 
+
+# Manipulando base baixada em Outubro de 2024
+
+```{r}
+data_set <- read_rds("../data/nasa-xco2.rds") 
+data_set <- data_set |> 
+  filter(xco2 > 0) |> 
+  mutate(
+    path = str_remove(path, "data-raw/nc4/|\\.nc4"),
+    date = as_date(str_sub(path,12,17)),
+    year = year(date),
+    month = month(date),
+    day = day(date),
+    .after = "time"
+  )
+glimpse(data_set)
+```
+
+## Visualização
+```{r}
+data_set  |> 
+  filter(year %in% 2024,
+         month %in% 1:3 ) |> 
+  filter(xco2 > 0) |>
+  group_by(longitude, latitude, date, month) |>
+  summarise(
+    xco2 = mean(xco2, na.rm=TRUE)
+  ) |>
+  ggplot(aes(x=longitude,y=latitude)) +
+  geom_point()
+```
+
+
 ## Calculando o valor da SIF
 
 ```{r}

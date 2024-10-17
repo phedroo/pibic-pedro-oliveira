@@ -14,27 +14,27 @@ def_pol <- function(x, y, pol){
 }
 
 ## função para ler arquivos NCD4
-# ncdf_reader <- function(file_path){
-#   nc_file <- ncdf4::nc_open(file_path)
-#   df <- data.frame(
-#     "longitude"=ncdf4::ncvar_get(nc_file,varid="longitude"),
-#     "latitude"=ncdf4::ncvar_get(nc_file,varid="latitude"),
-#     "time"=ncdf4::ncvar_get(nc_file,varid="time"),
-#     "xco2"=ncdf4::ncvar_get(nc_file,varid="xco2"),
-#     "xco2_quality_flag"=ncdf4::ncvar_get(nc_file,varid="xco2_quality_flag"),
-#     "xco2_incerteza"=ncdf4::ncvar_get(nc_file,varid="xco2_uncertainty"),
-#     "path" = file_path
-#   )
-#   ncdf4::nc_close(nc_file)
-#   return(df)
-# }
-# ncdf_reader(list_of_files[1])
-# dff_1 <- purrr::map_df(list_of_files[1:1000],ncdf_reader)
-# readr::write_rds(dff_1,"data-raw/dff_1.rds")
-# dff_2 <- purrr::map_df(list_of_files[1001:2000],ncdf_reader)
-# readr::write_rds(dff_2,"data-raw/dff_2.rds")
-# dff_3 <- purrr::map_df(list_of_files[2001:length(list_of_files)],ncdf_reader)
-# readr::write_rds(dff_3,"data-raw/dff_3.rds")
+ncdf_reader <- function(file_path){
+  nc_file <- ncdf4::nc_open(file_path)
+  df <- data.frame(
+    "longitude"=ncdf4::ncvar_get(nc_file,varid="longitude"),
+    "latitude"=ncdf4::ncvar_get(nc_file,varid="latitude"),
+    "time"=ncdf4::ncvar_get(nc_file,varid="time"),
+    "xco2"=ncdf4::ncvar_get(nc_file,varid="xco2"),
+    "xco2_quality_flag"=ncdf4::ncvar_get(nc_file,varid="xco2_quality_flag"),
+    "xco2_incerteza"=ncdf4::ncvar_get(nc_file,varid="xco2_uncertainty"),
+    "path" = file_path
+  )
+  ncdf4::nc_close(nc_file)
+  return(df)
+}
+ncdf_reader(list_of_files[1])
+dff_1 <- purrr::map_df(list_of_files[1:1000],ncdf_reader)
+readr::write_rds(dff_1,"data-raw/dff_1.rds")
+dff_2 <- purrr::map_df(list_of_files[1001:2000],ncdf_reader)
+readr::write_rds(dff_2,"data-raw/dff_2.rds")
+dff_3 <- purrr::map_df(list_of_files[2001:length(list_of_files)],ncdf_reader)
+readr::write_rds(dff_3,"data-raw/dff_3.rds")
 
 df1 <- readr::read_rds("data-raw/dff_1.rds")
 df1 <- df1 |>
