@@ -26,6 +26,9 @@ source("r/my-function.R")
 ### Base de dados inicial
 data_set <- read_rds("data/nasa-xco2.rds") |> 
   filter(year >= 2015 & year <= 2020) |> 
+  mutate(
+    state = ifelse(state=="DF","GO",state)
+  ) |> 
   select(-flag_nordeste, -flag_br)
 glimpse(data_set)
 ```
@@ -68,7 +71,7 @@ data_set_me <- data_set |>
 glimpse(data_set_me)
 ```
 
-    ## Rows: 414,025
+    ## Rows: 415,559
     ## Columns: 12
     ## $ longitude         <dbl> -50.28787, -50.34569, -50.35614, -50.35908, -50.3602…
     ## $ latitude          <dbl> -12.87398, -12.67460, -12.65862, -12.62923, -12.6399…
@@ -149,15 +152,18 @@ data_set_me |>
 ### PASSO 1
 
 ``` r
-my_year = 2016
+my_year = 2015
 my_state = "PA"
 # Criar o adensamento de pontos
 x<-data_set_me$longitude
 y<-data_set_me$latitude
-dis <- 0.15 #Distância entre pontos
+dis <- 0.05 #Distância entre pontos
 grid <- expand.grid(X=seq(min(x),max(x),dis), Y=seq(min(y),max(y),dis)) |>
   mutate(
-    flag = def_pol(X, Y, list_pol[[my_state]]) 
+    flag_my_state = my_state,
+    flag_st = def_pol(X, Y, list_pol[[my_state]]),
+    flag_df = def_pol(X, Y, list_pol[["DF"]]),
+    flag = ifelse(flag_my_state == "GO", (flag_st|flag_df),flag_st)
   ) |>  filter(flag) |>
   dplyr::select(-starts_with("flag"))
 sp::gridded(grid) = ~ X + Y
@@ -165,7 +171,29 @@ sp::gridded(grid) = ~ X + Y
 # points(x,y)
 ```
 
-### PASSO 2 - Construção do Semivariograma Experimental
+### Agregação dos dados
+
+``` r
+dist_agg <- .15 #Distância entre pontos
+grid_agg <- expand.grid(
+  X=seq(min(x),max(x),dist_agg), 
+  Y=seq(min(y),max(y),dist_agg)) |>
+  mutate(
+    flag_my_state = my_state,
+    flag_st = def_pol(X, Y, list_pol[[my_state]]),
+    flag_df = def_pol(X, Y, list_pol[["DF"]]),
+    flag = ifelse(flag_my_state == "GO", (flag_st|flag_df),flag_st)
+  ) |>  filter(flag) |>
+  dplyr::select(-starts_with("flag"))
+
+data_set_me |>
+  filter(year == 2015,state == my_state) |> 
+  ggplot(aes(longitude,latitude)) +
+  geom_point() +
+  geom_point(data=grid_agg, aes(X,Y))
+```
+
+![](README_files/figure-gfm/unnamed-chunk-10-1.png)<!-- -->
 
 ``` r
 # Isolando o banco de dados, pelo ano
@@ -175,18 +203,47 @@ data_set_aux  <- data_set_me |>
     state == my_state) |>
   dplyr::select(longitude, latitude, xco2)
 
+vct_xco2 <- vector();dist_xco2 <- vector();
+lon_grid <- vector();lat_grid <- vector();
+for(i in 1:nrow(data_set_aux)){
+  d <- sqrt((data_set_aux$longitude[i] - grid_agg$X)^2 + 
+              (data_set_aux$lat[i] - grid_agg$Y)^2
+  )
+  min_index <- order(d)[1]
+  vct_xco2[i] <- data_set_aux$xco2[min_index]
+  dist_xco2[i] <- d[order(d)[1]]
+  lon_grid[i] <- grid_agg$X[min_index]
+  lat_grid[i] <- grid_agg$Y[min_index]
+}
+data_set_aux$dist_xco2 <- dist_xco2
+data_set_aux$xco2_new <- vct_xco2
+data_set_aux$lon_grid <- lon_grid
+data_set_aux$lat_grid <- lat_grid
+data_set_aux |> 
+  group_by(lon_grid,lat_grid) |> 
+  summarise(
+    xco2 = mean(xco2)
+  ) |> 
+  rename(longitude = lon_grid, latitude = lat_grid) -> data_set_aux
+```
+
+### PASSO 2 - Construção do Semivariograma Experimental
+
+``` r
 # Alteração no df
 sp::coordinates(data_set_aux) = ~ longitude + latitude
 
 # Fórmule é a variável que modelar, e o 1 da fórmula indica que ela
 # não sofre transformação
 form <- xco2 ~ 1
+```
 
+``` r
 # Criando o Semivariograma Experimental.
 vari_exp <- gstat::variogram(form, data = data_set_aux,
                       cressie = FALSE,
-                      cutoff = 1, # distância máxima do semivariograma
-                      width = .03) # distancia entre pontos
+                      cutoff = 3, # distância máxima do semivariograma
+                      width = .1) # distancia entre pontos
 vari_exp  %>%
   ggplot(aes(x=dist, y=gamma)) +
   geom_point() +
@@ -194,7 +251,7 @@ vari_exp  %>%
        y=expression(paste(gamma,"(h)")))
 ```
 
-![](README_files/figure-gfm/unnamed-chunk-10-1.png)<!-- -->
+![](README_files/figure-gfm/unnamed-chunk-13-1.png)<!-- -->
 
 ### Passo 3 - Ajuste dos modelos
 
@@ -240,19 +297,19 @@ plot(vari_exp,
                  r21,")",sep=""))
 ```
 
-![](README_files/figure-gfm/unnamed-chunk-11-1.png)<!-- -->
+![](README_files/figure-gfm/unnamed-chunk-14-1.png)<!-- -->
 
 ``` r
 plot(vari_exp,model=modelo_2, col=1,pl=F,pch=16,cex=1.2,cex.main=7,ylab=list("Semivariância",cex=1.3),xlab=list("Distância de Separação h (m)",cex=1.3),main =paste("Exp(C0= ",c02,"; C0+C1= ", c0_c12, "; a= ", a2,"; r2 = ", r22,")",sep=""))
 ```
 
-![](README_files/figure-gfm/unnamed-chunk-11-2.png)<!-- -->
+![](README_files/figure-gfm/unnamed-chunk-14-2.png)<!-- -->
 
 ``` r
 plot(vari_exp,model=modelo_3, col=1,pl=F,pch=16,cex=1.2,cex.main=7,ylab=list("Semivariância",cex=1.3),xlab=list("Distância de Separação h (m)",cex=1.3),main =paste("Gau(C0= ",c03,"; C0+C1= ", c0_c13, "; a= ", a3,"; r2 = ", r23,")",sep=""))
 ```
 
-![](README_files/figure-gfm/unnamed-chunk-11-3.png)<!-- -->
+![](README_files/figure-gfm/unnamed-chunk-14-3.png)<!-- -->
 
 ### Passo 4 - escolha do melhor modelo
 
@@ -260,7 +317,7 @@ plot(vari_exp,model=modelo_3, col=1,pl=F,pch=16,cex=1.2,cex.main=7,ylab=list("Se
 # LOOCV - Leave one out cross validation
 conjunto_validacao <- data_set_aux %>%
   as_tibble() %>%
-  sample_n(100)
+  sample_n(50)
 sp::coordinates(conjunto_validacao) = ~longitude + latitude
 modelos<-list(modelo_1,modelo_2,modelo_3)
 for(j in 1:3){
@@ -333,58 +390,8 @@ for(j in 1:3){
     ## [using ordinary kriging]
     ## [using ordinary kriging]
     ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
 
-![](README_files/figure-gfm/unnamed-chunk-12-1.png)<!-- -->
+![](README_files/figure-gfm/unnamed-chunk-15-1.png)<!-- -->
 
     ## [using ordinary kriging]
     ## [using ordinary kriging]
@@ -436,58 +443,8 @@ for(j in 1:3){
     ## [using ordinary kriging]
     ## [using ordinary kriging]
     ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
 
-![](README_files/figure-gfm/unnamed-chunk-12-2.png)<!-- -->
+![](README_files/figure-gfm/unnamed-chunk-15-2.png)<!-- -->
 
     ## [using ordinary kriging]
     ## [using ordinary kriging]
@@ -539,58 +496,8 @@ for(j in 1:3){
     ## [using ordinary kriging]
     ## [using ordinary kriging]
     ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
 
-![](README_files/figure-gfm/unnamed-chunk-12-3.png)<!-- -->
+![](README_files/figure-gfm/unnamed-chunk-15-3.png)<!-- -->
 
 ### Passo 5 - Selecionado o melhor modelo, vamos guardá-lo
 
@@ -612,6 +519,7 @@ tibble(
 ) |> mutate(gde = c0/c0_c1, .after = "a") |>
   rename(state=my_state,year=my_year) |> 
   write_csv(paste0("output/best-fit/",my_state,"-",my_year,".csv"))
+
 ls_csv <- list.files("output/best-fit/",full.names = TRUE,pattern = ".csv")
 map_df(ls_csv, read_csv) |> 
   writexl::write_xlsx("output/semivariogram-models.xlsx")
@@ -629,7 +537,7 @@ dev.off()
 
 ``` r
 ko_variavel <- gstat::krige(formula=form, data_set_aux, grid, model=modelo,
-                     block=c(.5,.5),
+                     block=c(0.1,0.1),
                      nsim=0,
                      na.action=na.pass,
                      debug.level=-1
@@ -637,7 +545,7 @@ ko_variavel <- gstat::krige(formula=form, data_set_aux, grid, model=modelo,
 ```
 
     ## [using ordinary kriging]
-    ##   0% done  1% done  2% done  3% done  4% done  5% done  6% done  7% done  8% done  9% done 10% done 11% done 12% done 13% done 14% done 15% done 16% done 17% done 18% done 19% done 20% done 21% done 22% done 23% done 24% done 25% done 26% done 27% done 28% done 29% done 30% done 31% done 32% done 33% done 34% done 35% done 36% done 37% done 38% done 39% done 40% done 41% done 42% done 43% done 44% done 45% done 46% done 47% done 48% done 49% done 50% done 51% done 52% done 53% done 54% done 55% done 56% done 57% done 58% done 59% done 60% done 61% done 62% done 63% done 64% done 65% done 66% done 67% done 68% done 69% done 70% done 71% done 72% done 73% done 74% done 75% done 76% done 77% done 78% done 79% done 80% done 81% done 82% done 83% done 84% done 85% done 86% done 87% done 88% done 89% done 90% done 91% done 92% done 93% done 94% done 95% done 96% done 97% done 98% done 99% done100% done
+    ##   1% done  4% done  7% done 10% done 13% done 16% done 19% done 21% done 24% done 26% done 29% done 32% done 35% done 38% done 40% done 43% done 46% done 49% done 52% done 55% done 57% done 59% done 62% done 64% done 67% done 70% done 72% done 75% done 77% done 79% done 82% done 85% done 87% done 90% done 93% done 96% done 99% done100% done
 
 ## Passo 7 Visualização dos padrões espaciais e armazenamento dos dados e imagem.
 
@@ -654,7 +562,7 @@ mapa <- as.tibble(ko_variavel) %>%
 mapa
 ```
 
-![](README_files/figure-gfm/unnamed-chunk-15-1.png)<!-- -->
+![](README_files/figure-gfm/unnamed-chunk-18-1.png)<!-- -->
 
 ``` r
 ggsave(paste0("output/maps-kgr/kgr-xco2-",my_state,"-",my_year,".png"), plot = mapa, width = 10, height = 8, dpi = 300)
