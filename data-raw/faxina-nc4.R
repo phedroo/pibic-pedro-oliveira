@@ -302,12 +302,81 @@
 # readr::write_rds(data_set,"data/gosat-xch4.rds")
 
 
-
-
-
-
-
-
-
-
-
+# Faxina para a SIF -------------------------------------------------------
+# buscando o contorno do Brasil
+# br <- geobr::read_country(showProgress = FALSE)
+# pol_br <- br$geom |> purrr::pluck(1) |> as.matrix()
+# def_pol <- function(x, y, pol){
+#   as.logical(sp::point.in.polygon(point.x = x,
+#                                   point.y = y,
+#                                   pol.x = pol[,1],
+#                                   pol.y = pol[,2]))
+# }
+# dff <- fco2r::oco2_br |>
+#   dplyr::mutate(
+#     xco2 = xco2_moles_mole_1*1e06,
+#     date = lubridate::ymd_hms(time_yyyymmddhhmmss),
+#     year = lubridate::year(date),
+#     month = lubridate::month(date),
+#     day = lubridate::day(date),
+#     sif = (
+#       fluorescence_radiance_757nm_idp_ph_sec_1_m_2_sr_1_um_1*2.6250912*10^(-19)  + 1.5*fluorescence_radiance_771nm_idp_ph_sec_1_m_2_sr_1_um_1* 2.57743*10^(-19))/2)
+#
+# regiao <- geobr::read_region(showProgress = FALSE)
+# pol_norte <- regiao$geom |> purrr::pluck(1) |> as.matrix()
+# pol_nordeste <- regiao$geom |> purrr::pluck(2) |> as.matrix()
+# pol_sudeste <- regiao$geom |> purrr::pluck(3) |> as.matrix()
+# pol_sul <- regiao$geom |> purrr::pluck(4) |> as.matrix()
+# pol_centroeste<- regiao$geom |> purrr::pluck(5) |> as.matrix()
+#
+# # Retirando alguns pontos
+# pol_br <- pol_br[pol_br[,1]<=-34,]
+# pol_br <- pol_br[!((pol_br[,1]>=-38.8 & pol_br[,1]<=-38.6) &
+#                      (pol_br[,2]>= -19 & pol_br[,2]<= -16)),]
+#
+# pol_nordeste <- pol_nordeste[pol_nordeste[,1]<=-34,]
+# pol_nordeste <- pol_nordeste[!((pol_nordeste[,1]>=-38.7 & pol_nordeste[,1]<=-38.6) & pol_nordeste[,2]<= -15),]
+#
+# # Retirando alguns pontos
+# pol_br <- pol_br[pol_br[,1]<=-34,]
+# pol_br <- pol_br[!((pol_br[,1]>=-38.8 & pol_br[,1]<=-38.6) &
+#                      (pol_br[,2]>= -19 & pol_br[,2]<= -16)),]
+#
+# pol_nordeste <- pol_nordeste[pol_nordeste[,1]<=-34,]
+# pol_nordeste <- pol_nordeste[!((pol_nordeste[,1]>=-38.7 & pol_nordeste[,1]<=-38.6) & pol_nordeste[,2]<= -15),]
+#
+# # Recriando o flag_nordeste
+# dff <- dff |>
+#   dplyr::mutate(
+#     flag_br = def_pol(longitude, latitude, pol_br),
+#     flag_nordeste = def_pol(longitude, latitude, pol_nordeste)
+#   )
+#
+# br |>
+#   ggplot2::ggplot() +
+#   ggplot2::geom_sf(fill="white", color="#FEBF57",
+#                    size=.15, show.legend = FALSE) +
+#   ggplot2::geom_point(data= dff |>
+#                         dplyr::sample_n(1000) |>
+#                         dplyr::filter(flag_br|flag_nordeste) ,
+#                       ggplot2::aes(x=longitude,y=latitude),
+#                       shape=3,
+#                       col="red",
+#                       alpha=0.2)
+#
+#
+# # Criando a coluna para os estados.
+# # carregando os poligonos e funções
+# source("R/my-function.R")
+#
+# # Classificando pontos
+#
+# data_set <- dff
+# state <- 0
+# x <- data_set |> dplyr::pull(longitude)
+# y <- data_set |> dplyr::pull(latitude)
+# for(i in 1:nrow(data_set)) state[i] <- get_geobr_state(x[i],y[i])
+# data_set <- data_set |> cbind(state)
+# dplyr::glimpse(data_set)
+# readr::write_rds(data_set,"data/oco2-sif.rds")
+#
