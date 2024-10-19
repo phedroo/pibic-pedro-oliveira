@@ -518,12 +518,12 @@ tibble(
   my_state, my_year, model, c0, c0_c1, a, rss, r2
 ) |> mutate(gde = c0/c0_c1, .after = "a") |>
   rename(state=my_state,year=my_year) |> 
-  write_csv(paste0("output/best-fit/",my_state,"-",my_year,".csv"))
+  write_csv(paste0("output/best-fit/",my_state,"-",my_year,"-xco2.csv"))
 
-ls_csv <- list.files("output/best-fit/",full.names = TRUE,pattern = ".csv")
+ls_csv <- list.files("output/best-fit/",full.names = TRUE,pattern = "-xco2.csv")
 map_df(ls_csv, read_csv) |> 
-  writexl::write_xlsx("output/semivariogram-models.xlsx")
-png(filename = paste0("output/semivariogram-img/semivar-",
+  writexl::write_xlsx("output/semivariogram-models-xco2.xlsx")
+png(filename = paste0("output/semivariogram-img/semivar-xco2-",
                       my_state,"-",my_year,".png"),
     width = 800, height = 600)
 plot(vari_exp,model=modelo,cex.lab=2, col=1,pl=F,pch=16,cex=2.2,ylab=list("Semivariância",cex=2.3),xlab=list("Distância de Separação h (m)",cex=2.3,cex.axis=4))
@@ -545,7 +545,7 @@ ko_variavel <- gstat::krige(formula=form, data_set_aux, grid, model=modelo,
 ```
 
     ## [using ordinary kriging]
-    ##   1% done  4% done  7% done 10% done 13% done 16% done 19% done 21% done 24% done 26% done 29% done 32% done 35% done 38% done 40% done 43% done 46% done 49% done 52% done 55% done 57% done 59% done 62% done 64% done 67% done 70% done 72% done 75% done 77% done 79% done 82% done 85% done 87% done 90% done 93% done 96% done 99% done100% done
+    ##   1% done  4% done  7% done 10% done 13% done 16% done 19% done 21% done 24% done 27% done 30% done 33% done 36% done 39% done 41% done 44% done 47% done 50% done 52% done 55% done 58% done 61% done 64% done 67% done 70% done 73% done 75% done 78% done 81% done 84% done 87% done 90% done 92% done 95% done 98% done100% done
 
 ## Passo 7 Visualização dos padrões espaciais e armazenamento dos dados e imagem.
 
@@ -570,6 +570,550 @@ df <- ko_variavel %>%
   as.tibble() %>%
   mutate(var1.var = sqrt(var1.var)) 
 write_rds(df,paste0("output/maps-kgr/kgr-xco2-",my_state,"-",my_year,".rds"))
+```
+
+# Análise Para XCH4
+
+## Carregando Pacotes
+
+## Filtrando a Base
+
+``` r
+### Base de dados inicial
+data_set <- read_rds("data/gosat-xch4.rds") |> 
+  filter(year >= 2015 & year <= 2020) |> 
+  mutate(
+    state = ifelse(state=="DF","GO",state)
+  ) |> 
+  select(-flag_nordeste, -flag_br)
+glimpse(data_set)
+```
+
+    ## Rows: 52,796
+    ## Columns: 12
+    ## $ longitude         <dbl> -50.55648, -50.55732, -52.16461, -52.16571, -52.1661…
+    ## $ latitude          <dbl> 0.6428701, 0.6460943, -6.9492564, -6.9488077, -6.945…
+    ## $ time              <dbl> 1422806474, 1422806479, 1422806571, 1422806576, 1422…
+    ## $ date              <date> 2015-02-01, 2015-02-01, 2015-02-01, 2015-02-01, 201…
+    ## $ year              <dbl> 2015, 2015, 2015, 2015, 2015, 2015, 2015, 2015, 2015…
+    ## $ month             <dbl> 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2…
+    ## $ day               <int> 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1…
+    ## $ xch4              <dbl> 1834.315, 1842.071, 1840.691, 1826.608, 1834.456, 18…
+    ## $ xch4_quality_flag <int> 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0…
+    ## $ xch4_incerteza    <dbl> 9.699241, 9.678691, 10.075063, 9.945088, 9.987506, 1…
+    ## $ path              <chr> "UoL-GHG-L2-CH4-GOSAT-OCPR-20150201-fv9.0.nc", "UoL-…
+    ## $ state             <chr> "AP", "AP", "PA", "PA", "PA", "MT", "MT", "MT", "MT"…
+
+``` r
+# ## Avaliando o sinal de XCH4
+#Carrega a base filtrada
+data_set_me <- data_set |>
+  filter( 
+    state %in% c("MG","MT","MS","GO","PA")
+  )
+# Resumo da base
+glimpse(data_set_me)
+```
+
+    ## Rows: 24,344
+    ## Columns: 12
+    ## $ longitude         <dbl> -52.16461, -52.16571, -52.16616, -50.32345, -50.3242…
+    ## $ latitude          <dbl> -6.949256, -6.948808, -6.945048, -9.851810, -9.84787…
+    ## $ time              <dbl> 1422806571, 1422806576, 1422806580, 1422806626, 1422…
+    ## $ date              <date> 2015-02-01, 2015-02-01, 2015-02-01, 2015-02-01, 201…
+    ## $ year              <dbl> 2015, 2015, 2015, 2015, 2015, 2015, 2015, 2015, 2015…
+    ## $ month             <dbl> 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2…
+    ## $ day               <int> 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1…
+    ## $ xch4              <dbl> 1840.691, 1826.608, 1834.456, 1839.762, 1828.547, 18…
+    ## $ xch4_quality_flag <int> 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0…
+    ## $ xch4_incerteza    <dbl> 10.075063, 9.945088, 9.987506, 10.116740, 10.031814,…
+    ## $ path              <chr> "UoL-GHG-L2-CH4-GOSAT-OCPR-20150201-fv9.0.nc", "UoL-…
+    ## $ state             <chr> "PA", "PA", "PA", "MT", "MT", "MT", "MT", "MT", "MT"…
+
+``` r
+data_set_me |>
+  filter(year == 2015) |>
+  sample_n(1000) |> 
+  ggplot(aes(x = longitude, latitude)) +
+  geom_point()
+```
+
+![](README_files/figure-gfm/unnamed-chunk-21-1.png)<!-- -->
+
+``` r
+#Gráficos
+# Histogramas
+data_set_me %>%
+  ggplot(aes(x=xch4)) +
+  geom_histogram(color="black",fill="gray",
+                 bins = 30) +
+  facet_wrap(~year, scales = "free") +
+  theme_bw()
+```
+
+![](README_files/figure-gfm/unnamed-chunk-22-1.png)<!-- -->
+
+``` r
+data_set_me %>%
+  mutate(
+  fct_year = fct_rev(as.factor(year)),
+  ) %>%
+  ggplot(aes(y=fct_year)) +
+  geom_density_ridges(rel_min_height = 0.03,
+                      aes(x=xch4, fill=state),
+                      alpha = .6, color = "black"
+  ) +
+  scale_fill_viridis_d() +
+  theme_ridges() +
+  theme(
+    legend.position = "top"
+  )
+```
+
+![](README_files/figure-gfm/unnamed-chunk-23-1.png)<!-- -->
+
+``` r
+#Estatística Descritiva
+data_set_me |>
+  group_by(year,state) |>
+  summarise(
+    N = length(xch4),
+    MIN = min(xch4),
+    MEAN = mean(xch4),
+    MEDIAN = median(xch4),
+    MAX = max(xch4),
+    VARIANCIA  = var(xch4),
+    STD_DV = sd(xch4),
+    CV = 100*STD_DV/MEAN,
+    SKW = agricolae::skewness(xch4),
+    KRT = agricolae::kurtosis(xch4),
+  ) |>
+  writexl::write_xlsx("output/estat-desc-xch4.xlsx")
+```
+
+## Análise Geoestatística
+
+### PASSO 1
+
+``` r
+my_year = 2015
+my_state = "PA"
+# Criar o adensamento de pontos
+x<-data_set_me$longitude
+y<-data_set_me$latitude
+dis <- 0.05 #Distância entre pontos
+grid <- expand.grid(X=seq(min(x),max(x),dis), Y=seq(min(y),max(y),dis)) |>
+  mutate(
+    flag_my_state = my_state,
+    flag_st = def_pol(X, Y, list_pol[[my_state]]),
+    flag_df = def_pol(X, Y, list_pol[["DF"]]),
+    flag = ifelse(flag_my_state == "GO", (flag_st|flag_df),flag_st)
+  ) |>  filter(flag) |>
+  dplyr::select(-starts_with("flag"))
+sp::gridded(grid) = ~ X + Y
+# plot(grid$X,grid$Y,col="red",pch=4)
+# points(x,y)
+```
+
+### Agregação dos dados
+
+``` r
+dist_agg <- .15 #Distância entre pontos
+grid_agg <- expand.grid(
+  X=seq(min(x),max(x),dist_agg), 
+  Y=seq(min(y),max(y),dist_agg)) |>
+  mutate(
+    flag_my_state = my_state,
+    flag_st = def_pol(X, Y, list_pol[[my_state]]),
+    flag_df = def_pol(X, Y, list_pol[["DF"]]),
+    flag = ifelse(flag_my_state == "GO", (flag_st|flag_df),flag_st)
+  ) |>  filter(flag) |>
+  dplyr::select(-starts_with("flag"))
+
+data_set_me |>
+  filter(year == 2015,state == my_state) |> 
+  ggplot(aes(longitude,latitude)) +
+  geom_point() +
+  geom_point(data=grid_agg, aes(X,Y))
+```
+
+![](README_files/figure-gfm/unnamed-chunk-26-1.png)<!-- -->
+
+``` r
+# Isolando o banco de dados, pelo ano
+data_set_aux  <- data_set_me |>
+  filter(
+    year == my_year,
+    state == my_state) |>
+  dplyr::select(longitude, latitude, xch4)
+
+# vct_xch4 <- vector();dist_xch4 <- vector();
+# lon_grid <- vector();lat_grid <- vector();
+# for(i in 1:nrow(data_set_aux)){
+#   d <- sqrt((data_set_aux$longitude[i] - grid_agg$X)^2 + 
+#               (data_set_aux$lat[i] - grid_agg$Y)^2
+#   )
+#   min_index <- order(d)[1]
+#   vct_xch4[i] <- data_set_aux$xch4[min_index]
+#   dist_xch4[i] <- d[order(d)[1]]
+#   lon_grid[i] <- grid_agg$X[min_index]
+#   lat_grid[i] <- grid_agg$Y[min_index]
+# }
+# data_set_aux$dist_xch4 <- dist_xch4
+# data_set_aux$xch4_new <- vct_xch4
+# data_set_aux$lon_grid <- lon_grid
+# data_set_aux$lat_grid <- lat_grid
+# data_set_aux |> 
+#   group_by(lon_grid,lat_grid) |> 
+#   summarise(
+#     xch4 = mean(xch4)
+#   ) |> 
+#   rename(longitude = lon_grid, latitude = lat_grid) -> data_set_aux
+```
+
+### PASSO 2 - Construção do Semivariograma Experimental
+
+``` r
+# Alteração no df
+sp::coordinates(data_set_aux) = ~ longitude + latitude
+
+# Fórmule é a variável que modelar, e o 1 da fórmula indica que ela
+# não sofre transformação
+form <- xch4 ~ 1
+```
+
+``` r
+# Criando o Semivariograma Experimental.
+vari_exp <- gstat::variogram(form, data = data_set_aux,
+                      cressie = FALSE,
+                      cutoff = 10, # distância máxima do semivariograma
+                      width = .18) # distancia entre pontos
+vari_exp  %>%
+  ggplot(aes(x=dist, y=gamma)) +
+  geom_point() +
+  labs(x="lag (º)",
+       y=expression(paste(gamma,"(h)")))
+```
+
+![](README_files/figure-gfm/unnamed-chunk-29-1.png)<!-- -->
+
+### Passo 3 - Ajuste dos modelos
+
+``` r
+patamar=400
+alcance=2
+epepita=1
+modelo_1 <- gstat::fit.variogram(vari_exp,gstat::vgm(patamar,"Sph",alcance,epepita))
+modelo_2 <- gstat::fit.variogram(vari_exp,gstat::vgm(patamar,"Exp",alcance,epepita))
+modelo_3 <- gstat::fit.variogram(vari_exp,gstat::vgm(patamar,"Gau",alcance,epepita))
+sqr.f1<-round(attr(modelo_1, "SSErr"),4); c01<-round(modelo_1$psill[[1]],4); c0_c11<-round(sum(modelo_1$psill),4);a1<-round(modelo_1$range[[2]],2)
+sqr.f2<-round(attr(modelo_2, "SSErr"),4); c02<-round(modelo_2$psill[[1]],4); c0_c12<-round(sum(modelo_2$psill),4);a2<-round(3*modelo_2$range[[2]],2)
+sqr.f3<-round(attr(modelo_3, "SSErr"),4); c03<-round(modelo_3$psill[[1]],4); c0_c13<-round(sum(modelo_3$psill),4);a3<-round(modelo_3$range[[2]]*(3^.5),2)
+
+df_aux <- vari_exp %>%
+  mutate(
+    gamma_m1 = ifelse(dist <= a1, c01 + (c0_c11-c01)*(3/2*(dist/a1)-1/2*(dist/a1)^3),c0_c11),
+    gamma_m2 = c02 + (c0_c12-c02)*(1-exp(-3*(dist/a2))),
+    gamma_m3 = c03 + (c0_c13-c03)*(1-exp(-3*(dist/a3)^2)),
+    residuo_total = (gamma-mean(gamma))^2,
+    residuo_mod_1 = (gamma - gamma_m1)^2,
+    residuo_mod_2 = (gamma - gamma_m2)^2,
+    residuo_mod_3 = (gamma - gamma_m3)^2
+  ) %>%
+  summarise(
+    r2_1=(sum(residuo_total) - sum(residuo_mod_1))/sum(residuo_total),
+    r2_2=(sum(residuo_total) - sum(residuo_mod_2))/sum(residuo_total),
+    r2_3=(sum(residuo_total) - sum(residuo_mod_3))/sum(residuo_total),
+  )
+r21<-as.vector(round(df_aux[1],4))
+r22<-as.vector(round(df_aux[2],4))
+r23<-as.vector(round(df_aux[3],4))
+
+plot(vari_exp,
+     model=modelo_1,
+     col=1,pl=F,
+     pch=16,
+     cex=1.2,cex.main=7,
+     ylab=list("Semivariância",cex=1.3),
+     xlab=list("Distância de Separação h (m)",cex=1.3),
+     main =paste("Esf(C0= ",c01,"; C0+C1= ",
+                 c0_c11, "; a= ", a1,"; r2 = ",
+                 r21,")",sep=""))
+```
+
+![](README_files/figure-gfm/unnamed-chunk-30-1.png)<!-- -->
+
+``` r
+plot(vari_exp,model=modelo_2, col=1,pl=F,pch=16,cex=1.2,cex.main=7,ylab=list("Semivariância",cex=1.3),xlab=list("Distância de Separação h (m)",cex=1.3),main =paste("Exp(C0= ",c02,"; C0+C1= ", c0_c12, "; a= ", a2,"; r2 = ", r22,")",sep=""))
+```
+
+![](README_files/figure-gfm/unnamed-chunk-30-2.png)<!-- -->
+
+``` r
+plot(vari_exp,model=modelo_3, col=1,pl=F,pch=16,cex=1.2,cex.main=7,ylab=list("Semivariância",cex=1.3),xlab=list("Distância de Separação h (m)",cex=1.3),main =paste("Gau(C0= ",c03,"; C0+C1= ", c0_c13, "; a= ", a3,"; r2 = ", r23,")",sep=""))
+```
+
+![](README_files/figure-gfm/unnamed-chunk-30-3.png)<!-- -->
+
+### Passo 4 - escolha do melhor modelo
+
+``` r
+# LOOCV - Leave one out cross validation
+conjunto_validacao <- data_set_aux %>%
+  as_tibble() %>%
+  sample_n(50)
+sp::coordinates(conjunto_validacao) = ~longitude + latitude
+modelos<-list(modelo_1,modelo_2,modelo_3)
+for(j in 1:3){
+  est<-0
+  for(i in 1:nrow(conjunto_validacao)){
+    valid <- gstat::krige(formula=form, conjunto_validacao[-i,], conjunto_validacao, model=modelos[[j]])
+    est[i]<-valid$var1.pred[i]
+  }
+  obs<-as.data.frame(conjunto_validacao)[,3]
+  RMSE<-round((sum((obs-est)^2)/length(obs))^.5,3)
+  mod<-lm(obs~est)
+  b<-round(mod$coefficients[2],3)
+  se<-round(summary(mod)$coefficients[4],3)
+  r2<-round(summary(mod)$r.squared,3)
+  a<-round(mod$coefficients[1],3)
+  plot(est,obs,xlab="Estimado", ylab="Observado",pch=j,col="blue",
+       main=paste("Modelo = ",modelos[[j]][2,1],"; Coef. Reg. = ", b, " (SE = ",se, ", r2 = ", r2,")\ny intersept = ",a,"RMSE = ",RMSE ))
+  abline(lm(obs~est));
+  abline(0,1,lty=3)
+}
+```
+
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+
+![](README_files/figure-gfm/unnamed-chunk-31-1.png)<!-- -->
+
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+
+![](README_files/figure-gfm/unnamed-chunk-31-2.png)<!-- -->
+
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+
+![](README_files/figure-gfm/unnamed-chunk-31-3.png)<!-- -->
+
+### Passo 5 - Selecionado o melhor modelo, vamos guardá-lo
+
+``` r
+modelo <- modelo_2 ## sempre modificar
+# Salvando os parâmetros dos melhores modelo
+model <- modelo |> slice(2) |> pull(model)
+rss <- round(attr(modelo, "SSErr"),4) 
+c0 <- round(modelo$psill[[1]],4) 
+c0_c1 <- round(sum(modelo$psill),4)
+a <- ifelse(model == "Gau", round(modelo$range[[2]]*(3^.5),2),
+            ifelse(model == "Exp",round(3*modelo$range[[2]],2),
+            round(modelo$range[[2]],2)))
+r2 <- ifelse(model == "Gau", r23,
+            ifelse(model == "Exp",r22,
+            r21)) |> pluck(1)
+tibble(
+  my_state, my_year, model, c0, c0_c1, a, rss, r2
+) |> mutate(gde = c0/c0_c1, .after = "a") |>
+  rename(state=my_state,year=my_year) |> 
+  write_csv(paste0("output/best-fit/",my_state,"-",my_year,"-xch4.csv"))
+
+ls_csv <- list.files("output/best-fit-xch4/",full.names = TRUE,pattern = "-xch4.csv")
+map_df(ls_csv, read_csv) |> 
+  writexl::write_xlsx("output/semivariogram-models-xch4.xlsx")
+png(filename = paste0("output/semivariogram-img/semivar-xch4-",
+                      my_state,"-",my_year,".png"),
+    width = 800, height = 600)
+plot(vari_exp,model=modelo,cex.lab=2, col=1,pl=F,pch=16,cex=2.2,ylab=list("Semivariância",cex=2.3),xlab=list("Distância de Separação h (m)",cex=2.3,cex.axis=4))
+dev.off()
+```
+
+    ## png 
+    ##   2
+
+### Passo 6 - Krigagem Ordinária - interpolação em locais não amostrados
+
+``` r
+ko_variavel <- gstat::krige(formula=form, data_set_aux, grid, model=modelo,
+                     block=c(0.1,0.1),
+                     nsim=0,
+                     na.action=na.pass,
+                     debug.level=-1
+)
+```
+
+    ## [using ordinary kriging]
+    ##   0% done  3% done  5% done  7% done  9% done 11% done 14% done 16% done 18% done 20% done 23% done 25% done 27% done 29% done 31% done 34% done 36% done 38% done 40% done 43% done 45% done 47% done 49% done 51% done 54% done 56% done 58% done 60% done 62% done 65% done 67% done 69% done 71% done 74% done 76% done 78% done 80% done 83% done 85% done 87% done 89% done 91% done 94% done 96% done 98% done100% done
+
+## Passo 7 Visualização dos padrões espaciais e armazenamento dos dados e imagem.
+
+``` r
+mapa <- as.tibble(ko_variavel) %>%
+  ggplot(aes(x=X, y=Y)) +
+  geom_tile(aes(fill = var1.pred)) +
+  scale_fill_viridis_c() +
+  coord_equal() +
+  labs(x="Longitude",
+       y="Latitude",
+       fill="xch4") +
+  theme_bw()
+mapa
+```
+
+![](README_files/figure-gfm/unnamed-chunk-34-1.png)<!-- -->
+
+``` r
+ggsave(paste0("output/maps-kgr/kgr-xch4-",my_state,"-",my_year,".png"), plot = mapa, width = 10, height = 8, dpi = 300)
+df <- ko_variavel %>%
+  as.tibble() %>%
+  mutate(var1.var = sqrt(var1.var)) 
+write_rds(df,paste0("output/maps-kgr/kgr-xch4-",my_state,"-",my_year,".rds"))
 ```
 
 <!-- ## CARREGANDO OS PACOTES -->
