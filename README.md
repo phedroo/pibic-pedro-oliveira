@@ -17,7 +17,7 @@ library(geobr)
 source("r/my-function.R")
 ```
 
-    ## Polygons loaded [states, biomes, conservarion and indigenous]
+    ## Polygons loaded [states, citysbiomes, conservarion and indigenous]
     ## List of polygons loaded [list_pol]
 
 ## Filtrando a Base
@@ -153,7 +153,7 @@ data_set_me |>
 
 ``` r
 my_year = 2015
-my_state = "PA"
+my_state = "MT"
 # Criar o adensamento de pontos
 x<-data_set_me$longitude
 y<-data_set_me$latitude
@@ -242,7 +242,7 @@ form <- xco2 ~ 1
 # Criando o Semivariograma Experimental.
 vari_exp <- gstat::variogram(form, data = data_set_aux,
                       cressie = FALSE,
-                      cutoff = 3, # distância máxima do semivariograma
+                      cutoff = 6, # distância máxima do semivariograma
                       width = .1) # distancia entre pontos
 vari_exp  %>%
   ggplot(aes(x=dist, y=gamma)) +
@@ -502,7 +502,7 @@ for(j in 1:3){
 ### Passo 5 - Selecionado o melhor modelo, vamos guardá-lo
 
 ``` r
-modelo <- modelo_1 ## sempre modificar
+modelo <- modelo_2 ## sempre modificar
 # Salvando os parâmetros dos melhores modelo
 model <- modelo |> slice(2) |> pull(model)
 rss <- round(attr(modelo, "SSErr"),4) 
@@ -545,7 +545,7 @@ ko_variavel <- gstat::krige(formula=form, data_set_aux, grid, model=modelo,
 ```
 
     ## [using ordinary kriging]
-    ##   0% done  2% done  5% done  8% done 11% done 14% done 17% done 19% done 22% done 25% done 28% done 30% done 33% done 36% done 39% done 42% done 44% done 47% done 50% done 53% done 56% done 58% done 61% done 63% done 66% done 68% done 71% done 74% done 76% done 79% done 82% done 85% done 88% done 91% done 94% done 96% done 99% done100% done
+    ##   0% done  2% done  4% done  6% done  8% done 10% done 13% done 14% done 16% done 18% done 20% done 21% done 23% done 24% done 26% done 28% done 30% done 32% done 34% done 36% done 38% done 40% done 42% done 43% done 45% done 47% done 49% done 51% done 52% done 54% done 56% done 58% done 59% done 61% done 64% done 66% done 68% done 70% done 72% done 74% done 76% done 78% done 80% done 82% done 84% done 86% done 88% done 90% done 92% done 94% done 96% done 98% done100% done
 
 ## Passo 7 Visualização dos padrões espaciais e armazenamento dos dados e imagem.
 
@@ -697,7 +697,7 @@ data_set_me |>
 
 ``` r
 my_year = 2015
-my_state = "PA"
+my_state = "MT"
 # Criar o adensamento de pontos
 x<-data_set_me$longitude
 y<-data_set_me$latitude
@@ -786,8 +786,8 @@ form <- xch4 ~ 1
 # Criando o Semivariograma Experimental.
 vari_exp <- gstat::variogram(form, data = data_set_aux,
                       cressie = FALSE,
-                      cutoff = 10, # distância máxima do semivariograma
-                      width = .18) # distancia entre pontos
+                      cutoff = 09, # distância máxima do semivariograma
+                      width = .75) # distancia entre pontos
 vari_exp  %>%
   ggplot(aes(x=dist, y=gamma)) +
   geom_point() +
@@ -1089,7 +1089,7 @@ ko_variavel <- gstat::krige(formula=form, data_set_aux, grid, model=modelo,
 ```
 
     ## [using ordinary kriging]
-    ##   1% done  3% done  5% done  7% done 10% done 12% done 14% done 16% done 18% done 21% done 23% done 25% done 27% done 29% done 32% done 34% done 36% done 38% done 41% done 43% done 45% done 47% done 49% done 52% done 54% done 56% done 58% done 61% done 63% done 65% done 67% done 69% done 72% done 74% done 76% done 78% done 81% done 83% done 85% done 87% done 89% done 92% done 94% done 96% done 98% done100% done
+    ##   0% done  1% done  2% done  3% done  4% done  5% done  6% done  7% done  9% done 10% done 11% done 12% done 13% done 14% done 15% done 16% done 17% done 18% done 19% done 20% done 21% done 22% done 23% done 24% done 25% done 26% done 28% done 29% done 30% done 31% done 32% done 33% done 35% done 36% done 37% done 38% done 39% done 40% done 41% done 42% done 43% done 44% done 45% done 46% done 47% done 48% done 49% done 50% done 51% done 52% done 53% done 54% done 55% done 56% done 57% done 58% done 59% done 60% done 61% done 62% done 63% done 64% done 65% done 66% done 67% done 68% done 69% done 70% done 71% done 72% done 73% done 74% done 75% done 76% done 77% done 78% done 79% done 80% done 81% done 82% done 83% done 84% done 85% done 86% done 87% done 88% done 89% done 90% done 91% done 92% done 93% done 94% done 95% done 96% done 97% done 98% done 99% done100% done
 
 ## Passo 7 Visualização dos padrões espaciais e armazenamento dos dados e imagem.
 
@@ -1361,8 +1361,8 @@ form <- sif ~ 1
 # Criando o Semivariograma Experimental.
 vari_exp <- gstat::variogram(form, data = data_set_aux,
                       cressie = FALSE,
-                      cutoff = 20, # distância máxima do semivariograma
-                      width = 1.5) # distancia entre pontos
+                      cutoff = 8, # distância máxima do semivariograma
+                      width = 0.005) # distancia entre pontos
 vari_exp  %>%
   ggplot(aes(x=dist, y=gamma)) +
   geom_point() +
@@ -1375,8 +1375,8 @@ vari_exp  %>%
 ### Passo 3 - Ajuste dos modelos
 
 ``` r
-patamar=.035
-alcance=1.5
+patamar=0.35
+alcance=3
 epepita=0.01
 modelo_1 <- gstat::fit.variogram(vari_exp,gstat::vgm(patamar,"Sph",alcance,epepita))
 modelo_2 <- gstat::fit.variogram(vari_exp,gstat::vgm(patamar,"Exp",alcance,epepita))
@@ -1436,7 +1436,7 @@ plot(vari_exp,model=modelo_3, col=1,pl=F,pch=16,cex=1.2,cex.main=7,ylab=list("Se
 # LOOCV - Leave one out cross validation
 conjunto_validacao <- data_set_aux %>%
   as_tibble() %>%
-  sample_n(50)
+  sample_n(10)
 sp::coordinates(conjunto_validacao) = ~longitude + latitude
 modelos<-list(modelo_1,modelo_2,modelo_3)
 for(j in 1:3){
@@ -1469,46 +1469,6 @@ for(j in 1:3){
     ## [using ordinary kriging]
     ## [using ordinary kriging]
     ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
 
 ![](README_files/figure-gfm/unnamed-chunk-47-1.png)<!-- -->
 
@@ -1522,89 +1482,9 @@ for(j in 1:3){
     ## [using ordinary kriging]
     ## [using ordinary kriging]
     ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
 
 ![](README_files/figure-gfm/unnamed-chunk-47-2.png)<!-- -->
 
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
     ## [using ordinary kriging]
     ## [using ordinary kriging]
     ## [using ordinary kriging]
@@ -1664,7 +1544,7 @@ ko_variavel <- gstat::krige(formula=form, data_set_aux, grid, model=modelo,
 ```
 
     ## [using ordinary kriging]
-    ##  43% done100% done
+    ##  21% done 94% done100% done
 
 ## Passo 7 Visualização dos padrões espaciais e armazenamento dos dados e imagem.
 
@@ -1689,6 +1569,56 @@ df <- ko_variavel %>%
   as.tibble() %>%
   mutate(var1.var = sqrt(var1.var)) 
 write_rds(df,paste0("output/maps-kgr/kgr-sif-",my_state,"-",my_year,".rds"))
+```
+
+# Compilando os mapas krigados.
+
+### Rodar somente após todos os mapas gerados
+
+``` r
+list_rds <- list.files("output/maps-kgr/",
+           pattern = ".rds",
+           full.names = TRUE)
+
+kgr_maps <- map_df(list_rds, rds_reader)
+
+kgr_maps_group <- kgr_maps |> 
+  group_by(variable, state, X, Y) |> 
+  summarise(
+    n = n()
+  ) |> select(-n)
+
+# state <- kgr_maps_group |> pull(state)
+# x <- kgr_maps_group |> pull(X)
+# y <- kgr_maps_group |> pull(Y)
+# v_city <- 0
+# for(i in 1:nrow(kgr_maps_group)){
+#   obj <- citys |> 
+#     filter(abbrev_state == state[i])
+#   name_muni <- citys |> 
+#     filter(abbrev_state == state[i]) |> 
+#     pull(name_muni)
+#   vlg <- FALSE
+#   for(j in seq_along(name_muni)){
+#     pol <- obj$geom |> pluck(j) |> as.matrix()
+#     lgv <- def_pol(x[i],y[i],pol)
+#     if(lgv) {
+#       v_city[i] <- name_muni[j]
+#       print(paste0(v_city[i],"-",i))
+#       break
+#     }
+#   }
+# }
+# kgr_maps_group <- kgr_maps_group |> 
+#   add_column(
+#     city = v_city
+#   )
+# 
+# kgr_maps <- kgr_maps |> 
+#   left_join(
+#     kgr_maps_group |> 
+#       select(X, Y, city) ,by = c("X","Y")
+#   ) 
 ```
 
 <!-- ## CARREGANDO OS PACOTES -->

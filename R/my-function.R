@@ -15,12 +15,14 @@ get_geobr_indigenous_pol <- function(i) {
   indigenous$geom |> purrr::pluck(i) |> as.matrix()
 }
 
-# Carregando os polígonos dos estados
+# Carregando os polígonos
 states <- geobr::read_state(showProgress = FALSE)
 biomes <- geobr::read_biomes(showProgress = FALSE)
 conservation <- geobr::read_conservation_units(showProgress = FALSE)
 indigenous <- geobr::read_indigenous_land(showProgress = FALSE)
-cat("Polygons loaded [states, biomes, conservarion and indigenous]\n")
+citys <- geobr::read_municipality(showProgress = FALSE)
+
+cat("Polygons loaded [states, citysbiomes, conservarion and indigenous]\n")
 
 # Criando lista de polígonos com todos os estados
 abbrev_states <- states$abbrev_state
@@ -52,6 +54,37 @@ get_geobr_state <- function(x,y){
     }
   }
   return(as.vector(resul))
+}
+
+
+get_geobr_city <- function(x, y, state){
+  # Garantir que x, y e state são vetores de mesma dimensão
+  if(length(x) != length(y) | length(x) != length(state)){
+    stop("As dimensões de x, y e state devem ser iguais.")
+  }
+  resul <- vector("character", length(x))  # Vetor para armazenar os resultados
+  for(i in seq_along(x)){
+    xi <- x[i]
+    yi <- y[i]
+    mstate <- state[i]
+
+    obj <- citys |>
+      filter(abbrev_state == mstate)
+
+    name_munis <- citys |>
+      filter(abbrev_state == mstate) |>
+      pull(name_muni)
+
+    for(j in seq_along(name_munis)){
+      pol <- obj$geom |> pluck(j) |> as.matrix()
+      lgv <- def_pol(xi, yi, pol)
+      if(lgv) {
+        resul[i] <- name_munis[j]
+        break  # Para de procurar assim que encontrar a cidade correspondente
+      }
+    }
+  }
+  return(resul)
 }
 
 ####
@@ -152,6 +185,20 @@ get_coord <- function(x, y, type= "Long"){
   if(type == "distancia") return(as.numeric(df[,4]))
 }
 
+rds_reader <- function(path){
+  readr::read_rds(path) |>
+    mutate(
+      path = stringr::str_remove(path,"output/maps-kgr/kgr-|\\.rds"),
+      year = as.numeric(stringr::str_sub(path,-8,-5)),
+      state = stringr::str_sub(path,-11,-10),
+      variable = stringr::str_extract(path, "^[^\\-]+")
+    ) |>
+    rename(
+      value = var1.pred, value_std = var1.var
+    ) |>
+    select(-path) |>
+    relocate(variable, state, year)
+}
 
 
 # get_coord_2 <- function(x, y, type= "Long"){
