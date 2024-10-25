@@ -1948,7 +1948,7 @@ emissions_sources <- read_rds('data/emissions_sources.rds')
 city_kgr_beta_emission <- city_kgr_beta |> 
   left_join(
     emissions_sources |>
-      filter(year == 2022,                 #%in% 2015:2022
+      filter(year == 2020,                 #%in% 2015:2022
              sigla_uf %in% estados,
              !source_name %in% nomes_uf,
              str_detect(activity_units, 'animal'),
@@ -1984,7 +1984,7 @@ estado <- 'GO'
 quant_head <- 24410182
 
 emissions_sources |>
-  filter(year == 2022,
+  filter(year == 2020,
          str_detect(activity_units, 'animal'),
          # sector_name == 'agriculture',
          !source_name %in% nomes_uf,
@@ -2001,7 +2001,7 @@ emissions_sources |>
     ## # A tibble: 1 × 3
     ##   sigla_uf emission_total mean_head
     ##   <chr>             <dbl>     <dbl>
-    ## 1 GO                 36.9      1.51
+    ## 1 GO                 36.8      1.51
 
 ## CRIANDO TEMA GRAFICO
 
@@ -2046,7 +2046,7 @@ my_plot_map <- function(.estados){
   geom_sf(fill="white", color="black",
           size=.15, show.legend = F) +
   geom_point(data = emissions_sources |>
-               filter(year == 2022, #>2014 & year <2023
+               filter(year == 2020, #>2014 & year <2023
                       sigla_uf == .estados,
                       str_detect(activity_units, 'animal'),
                       gas == 'co2e_100yr') |>
@@ -2115,7 +2115,7 @@ map(estados,my_plot_map)
 # my_plot_map_join <- function(.estados){
 #   left_join(city |> filter(abbrev_state == .estados),
 #           emissions_sources |>
-#             filter(year == 2022, #>2014 & year <2023
+#             filter(year == 2020, #>2014 & year <2023
 #                    sigla_uf == .estados,
 #                    !source_name %in% nomes_uf,
 #                    str_detect(activity_units, 'animal'),            #filtering the four subsectors for cattle
@@ -2165,7 +2165,7 @@ map(estados,my_plot_map)
 
  left_join(citys |> filter(abbrev_state %in% estados),
            emissions_sources |>
-             filter(year == 2022,                 #%in% 2015:2022
+             filter(year == 2020,                 #%in% 2015:2022
                     sigla_uf %in% estados,
                     !source_name %in% nomes_uf,
                     str_detect(activity_units, 'animal'),            #filtering the four subsectors for cattle
@@ -2236,20 +2236,20 @@ map(estados,my_corrplot)
 
     ## $corr
     ##                    emissions_quantity    beta_sif  beta_xch4  beta_xco2
-    ## emissions_quantity         1.00000000  0.09228143  0.1042044  0.1116891
-    ## beta_sif                   0.09228143  1.00000000  0.4444834 -0.2416790
-    ## beta_xch4                  0.10420437  0.44448337  1.0000000 -0.3589533
-    ## beta_xco2                  0.11168911 -0.24167901 -0.3589533  1.0000000
+    ## emissions_quantity         1.00000000  0.09227685  0.1042183  0.1116938
+    ## beta_sif                   0.09227685  1.00000000  0.4444834 -0.2416790
+    ## beta_xch4                  0.10421832  0.44448337  1.0000000 -0.3589533
+    ## beta_xco2                  0.11169384 -0.24167901 -0.3589533  1.0000000
     ## 
     ## $corrPos
     ##                 xName              yName x y        corr
     ## 1  emissions_quantity emissions_quantity 1 4  1.00000000
-    ## 2            beta_sif emissions_quantity 2 4  0.09228143
+    ## 2            beta_sif emissions_quantity 2 4  0.09227685
     ## 3            beta_sif           beta_sif 2 3  1.00000000
-    ## 4           beta_xch4 emissions_quantity 3 4  0.10420437
+    ## 4           beta_xch4 emissions_quantity 3 4  0.10421832
     ## 5           beta_xch4           beta_sif 3 3  0.44448337
     ## 6           beta_xch4          beta_xch4 3 2  1.00000000
-    ## 7           beta_xco2 emissions_quantity 4 4  0.11168911
+    ## 7           beta_xco2 emissions_quantity 4 4  0.11169384
     ## 8           beta_xco2           beta_sif 4 3 -0.24167901
     ## 9           beta_xco2          beta_xch4 4 2 -0.35895333
     ## 10          beta_xco2          beta_xco2 4 1  1.00000000
@@ -2262,20 +2262,20 @@ map(estados,my_corrplot)
 
     ## $corr
     ##                    emissions_quantity    beta_sif  beta_xch4   beta_xco2
-    ## emissions_quantity         1.00000000 -0.08791411 -0.1354180 -0.08506265
-    ## beta_sif                  -0.08791411  1.00000000  0.2824124  0.04865846
-    ## beta_xch4                 -0.13541799  0.28241237  1.0000000  0.11557149
-    ## beta_xco2                 -0.08506265  0.04865846  0.1155715  1.00000000
+    ## emissions_quantity         1.00000000 -0.08766482 -0.1350594 -0.08443288
+    ## beta_sif                  -0.08766482  1.00000000  0.2824124  0.04865846
+    ## beta_xch4                 -0.13505937  0.28241237  1.0000000  0.11557149
+    ## beta_xco2                 -0.08443288  0.04865846  0.1155715  1.00000000
     ## 
     ## $corrPos
     ##                 xName              yName x y        corr
     ## 1  emissions_quantity emissions_quantity 1 4  1.00000000
-    ## 2            beta_sif emissions_quantity 2 4 -0.08791411
+    ## 2            beta_sif emissions_quantity 2 4 -0.08766482
     ## 3            beta_sif           beta_sif 2 3  1.00000000
-    ## 4           beta_xch4 emissions_quantity 3 4 -0.13541799
+    ## 4           beta_xch4 emissions_quantity 3 4 -0.13505937
     ## 5           beta_xch4           beta_sif 3 3  0.28241237
     ## 6           beta_xch4          beta_xch4 3 2  1.00000000
-    ## 7           beta_xco2 emissions_quantity 4 4 -0.08506265
+    ## 7           beta_xco2 emissions_quantity 4 4 -0.08443288
     ## 8           beta_xco2           beta_sif 4 3  0.04865846
     ## 9           beta_xco2          beta_xch4 4 2  0.11557149
     ## 10          beta_xco2          beta_xco2 4 1  1.00000000
@@ -2313,24 +2313,24 @@ map(estados,my_corrplot)
 ![](README_files/figure-gfm/unnamed-chunk-67-4.png)<!-- -->
 
     ## $corr
-    ##                    emissions_quantity    beta_sif   beta_xch4   beta_xco2
-    ## emissions_quantity         1.00000000 -0.12242464 -0.15930352  0.01000652
-    ## beta_sif                  -0.12242464  1.00000000  0.04591749 -0.14554713
-    ## beta_xch4                 -0.15930352  0.04591749  1.00000000 -0.08746528
-    ## beta_xco2                  0.01000652 -0.14554713 -0.08746528  1.00000000
+    ##                    emissions_quantity    beta_sif   beta_xch4    beta_xco2
+    ## emissions_quantity        1.000000000 -0.12279757 -0.15901118  0.009793046
+    ## beta_sif                 -0.122797572  1.00000000  0.04591749 -0.145547135
+    ## beta_xch4                -0.159011179  0.04591749  1.00000000 -0.087465279
+    ## beta_xco2                 0.009793046 -0.14554713 -0.08746528  1.000000000
     ## 
     ## $corrPos
-    ##                 xName              yName x y        corr
-    ## 1  emissions_quantity emissions_quantity 1 4  1.00000000
-    ## 2            beta_sif emissions_quantity 2 4 -0.12242464
-    ## 3            beta_sif           beta_sif 2 3  1.00000000
-    ## 4           beta_xch4 emissions_quantity 3 4 -0.15930352
-    ## 5           beta_xch4           beta_sif 3 3  0.04591749
-    ## 6           beta_xch4          beta_xch4 3 2  1.00000000
-    ## 7           beta_xco2 emissions_quantity 4 4  0.01000652
-    ## 8           beta_xco2           beta_sif 4 3 -0.14554713
-    ## 9           beta_xco2          beta_xch4 4 2 -0.08746528
-    ## 10          beta_xco2          beta_xco2 4 1  1.00000000
+    ##                 xName              yName x y         corr
+    ## 1  emissions_quantity emissions_quantity 1 4  1.000000000
+    ## 2            beta_sif emissions_quantity 2 4 -0.122797572
+    ## 3            beta_sif           beta_sif 2 3  1.000000000
+    ## 4           beta_xch4 emissions_quantity 3 4 -0.159011179
+    ## 5           beta_xch4           beta_sif 3 3  0.045917493
+    ## 6           beta_xch4          beta_xch4 3 2  1.000000000
+    ## 7           beta_xco2 emissions_quantity 4 4  0.009793046
+    ## 8           beta_xco2           beta_sif 4 3 -0.145547135
+    ## 9           beta_xco2          beta_xch4 4 2 -0.087465279
+    ## 10          beta_xco2          beta_xco2 4 1  1.000000000
     ## 
     ## $arg
     ## $arg$type
@@ -2365,20 +2365,20 @@ map(estados,my_corrplot)
     ## [[1]]
     ## [[1]]$corr
     ##                    emissions_quantity    beta_sif  beta_xch4  beta_xco2
-    ## emissions_quantity         1.00000000  0.09228143  0.1042044  0.1116891
-    ## beta_sif                   0.09228143  1.00000000  0.4444834 -0.2416790
-    ## beta_xch4                  0.10420437  0.44448337  1.0000000 -0.3589533
-    ## beta_xco2                  0.11168911 -0.24167901 -0.3589533  1.0000000
+    ## emissions_quantity         1.00000000  0.09227685  0.1042183  0.1116938
+    ## beta_sif                   0.09227685  1.00000000  0.4444834 -0.2416790
+    ## beta_xch4                  0.10421832  0.44448337  1.0000000 -0.3589533
+    ## beta_xco2                  0.11169384 -0.24167901 -0.3589533  1.0000000
     ## 
     ## [[1]]$corrPos
     ##                 xName              yName x y        corr
     ## 1  emissions_quantity emissions_quantity 1 4  1.00000000
-    ## 2            beta_sif emissions_quantity 2 4  0.09228143
+    ## 2            beta_sif emissions_quantity 2 4  0.09227685
     ## 3            beta_sif           beta_sif 2 3  1.00000000
-    ## 4           beta_xch4 emissions_quantity 3 4  0.10420437
+    ## 4           beta_xch4 emissions_quantity 3 4  0.10421832
     ## 5           beta_xch4           beta_sif 3 3  0.44448337
     ## 6           beta_xch4          beta_xch4 3 2  1.00000000
-    ## 7           beta_xco2 emissions_quantity 4 4  0.11168911
+    ## 7           beta_xco2 emissions_quantity 4 4  0.11169384
     ## 8           beta_xco2           beta_sif 4 3 -0.24167901
     ## 9           beta_xco2          beta_xch4 4 2 -0.35895333
     ## 10          beta_xco2          beta_xco2 4 1  1.00000000
@@ -2392,20 +2392,20 @@ map(estados,my_corrplot)
     ## [[2]]
     ## [[2]]$corr
     ##                    emissions_quantity    beta_sif  beta_xch4   beta_xco2
-    ## emissions_quantity         1.00000000 -0.08791411 -0.1354180 -0.08506265
-    ## beta_sif                  -0.08791411  1.00000000  0.2824124  0.04865846
-    ## beta_xch4                 -0.13541799  0.28241237  1.0000000  0.11557149
-    ## beta_xco2                 -0.08506265  0.04865846  0.1155715  1.00000000
+    ## emissions_quantity         1.00000000 -0.08766482 -0.1350594 -0.08443288
+    ## beta_sif                  -0.08766482  1.00000000  0.2824124  0.04865846
+    ## beta_xch4                 -0.13505937  0.28241237  1.0000000  0.11557149
+    ## beta_xco2                 -0.08443288  0.04865846  0.1155715  1.00000000
     ## 
     ## [[2]]$corrPos
     ##                 xName              yName x y        corr
     ## 1  emissions_quantity emissions_quantity 1 4  1.00000000
-    ## 2            beta_sif emissions_quantity 2 4 -0.08791411
+    ## 2            beta_sif emissions_quantity 2 4 -0.08766482
     ## 3            beta_sif           beta_sif 2 3  1.00000000
-    ## 4           beta_xch4 emissions_quantity 3 4 -0.13541799
+    ## 4           beta_xch4 emissions_quantity 3 4 -0.13505937
     ## 5           beta_xch4           beta_sif 3 3  0.28241237
     ## 6           beta_xch4          beta_xch4 3 2  1.00000000
-    ## 7           beta_xco2 emissions_quantity 4 4 -0.08506265
+    ## 7           beta_xco2 emissions_quantity 4 4 -0.08443288
     ## 8           beta_xco2           beta_sif 4 3  0.04865846
     ## 9           beta_xco2          beta_xch4 4 2  0.11557149
     ## 10          beta_xco2          beta_xco2 4 1  1.00000000
@@ -2445,24 +2445,24 @@ map(estados,my_corrplot)
     ## 
     ## [[4]]
     ## [[4]]$corr
-    ##                    emissions_quantity    beta_sif   beta_xch4   beta_xco2
-    ## emissions_quantity         1.00000000 -0.12242464 -0.15930352  0.01000652
-    ## beta_sif                  -0.12242464  1.00000000  0.04591749 -0.14554713
-    ## beta_xch4                 -0.15930352  0.04591749  1.00000000 -0.08746528
-    ## beta_xco2                  0.01000652 -0.14554713 -0.08746528  1.00000000
+    ##                    emissions_quantity    beta_sif   beta_xch4    beta_xco2
+    ## emissions_quantity        1.000000000 -0.12279757 -0.15901118  0.009793046
+    ## beta_sif                 -0.122797572  1.00000000  0.04591749 -0.145547135
+    ## beta_xch4                -0.159011179  0.04591749  1.00000000 -0.087465279
+    ## beta_xco2                 0.009793046 -0.14554713 -0.08746528  1.000000000
     ## 
     ## [[4]]$corrPos
-    ##                 xName              yName x y        corr
-    ## 1  emissions_quantity emissions_quantity 1 4  1.00000000
-    ## 2            beta_sif emissions_quantity 2 4 -0.12242464
-    ## 3            beta_sif           beta_sif 2 3  1.00000000
-    ## 4           beta_xch4 emissions_quantity 3 4 -0.15930352
-    ## 5           beta_xch4           beta_sif 3 3  0.04591749
-    ## 6           beta_xch4          beta_xch4 3 2  1.00000000
-    ## 7           beta_xco2 emissions_quantity 4 4  0.01000652
-    ## 8           beta_xco2           beta_sif 4 3 -0.14554713
-    ## 9           beta_xco2          beta_xch4 4 2 -0.08746528
-    ## 10          beta_xco2          beta_xco2 4 1  1.00000000
+    ##                 xName              yName x y         corr
+    ## 1  emissions_quantity emissions_quantity 1 4  1.000000000
+    ## 2            beta_sif emissions_quantity 2 4 -0.122797572
+    ## 3            beta_sif           beta_sif 2 3  1.000000000
+    ## 4           beta_xch4 emissions_quantity 3 4 -0.159011179
+    ## 5           beta_xch4           beta_sif 3 3  0.045917493
+    ## 6           beta_xch4          beta_xch4 3 2  1.000000000
+    ## 7           beta_xco2 emissions_quantity 4 4  0.009793046
+    ## 8           beta_xco2           beta_sif 4 3 -0.145547135
+    ## 9           beta_xco2          beta_xch4 4 2 -0.087465279
+    ## 10          beta_xco2          beta_xco2 4 1  1.000000000
     ## 
     ## [[4]]$arg
     ## [[4]]$arg$type
@@ -2547,7 +2547,7 @@ emissions_sources |>
 ``` r
 emissions_sources |>
   filter(
-    year == 2022,                   #%in% 2015:2022
+    year == 2020,                   #%in% 2015:2022
     sigla_uf %in% estados, # <-----
     str_detect(activity_units, 'animal'),
     # sector_name == 'agriculture',
@@ -2619,7 +2619,7 @@ estado <- 'MG'
 my_plot_col_states <- function(.estados){
   emissions_sources |>
   filter(
-    year == 2022,
+    year == 2020,
     sigla_uf == .estados,
     !source_name %in% nomes_uf,
     #str_detect(activity_units, 'animal'),
@@ -2716,7 +2716,7 @@ map(estados,my_plot_col_states)
 # my_plot_subsector_states <- function(.estados){
   emissions_sources |>
   filter(
-         year == 2022,
+         year == 2020,
          str_detect(activity_units, 'animal'),
          gas == 'co2e_100yr',
          !source_name %in% nomes_uf,
@@ -2782,7 +2782,7 @@ map(estados,my_plot_col_states)
 ``` r
 # emissions_sources |>
 #   filter(
-#     year == 2022,
+#     year == 2020,
 #     sigla_uf %in% estados,
 #     !source_name %in% nomes_uf,
 #     gas == 'co2e_100yr',
@@ -2822,7 +2822,7 @@ map(estados,my_plot_col_states)
 ``` r
 emissions_sources |>
   filter(
-    year == 2022,
+    year == 2020,
     sigla_uf %in% estados,
     !source_name %in% nomes_uf,
     gas == 'co2e_100yr',
@@ -2871,7 +2871,7 @@ emissions_sources |>
 
 ``` r
 emissions_sources |>
-  filter(year == 2022,
+  filter(year == 2020,
          str_detect(activity_units, 'animal'),          #cattle
          # sector_name == 'agriculture',
          !source_name %in% nomes_uf,
@@ -2887,11 +2887,11 @@ emissions_sources |>
     ## # A tibble: 5 × 2
     ##   sigla_uf soma_emissao
     ##   <chr>           <dbl>
-    ## 1 MG          48937939.
-    ## 2 MS          43469987.
-    ## 3 MT          40816950.
-    ## 4 GO          36888763.
-    ## 5 PA          13610501.
+    ## 1 MG          48858351.
+    ## 2 MS          43401571.
+    ## 3 MT          40707951.
+    ## 4 GO          36818760.
+    ## 5 PA          13588943.
 
 ## SERIE TEMPORAL, 2015 A 2022
 

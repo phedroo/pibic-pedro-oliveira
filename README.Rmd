@@ -1285,7 +1285,7 @@ emissions_sources <- read_rds('data/emissions_sources.rds')
 city_kgr_beta_emission <- city_kgr_beta |> 
   left_join(
     emissions_sources |>
-      filter(year == 2022,                 #%in% 2015:2022
+      filter(year == 2020,                 #%in% 2015:2022
              sigla_uf %in% estados,
              !source_name %in% nomes_uf,
              str_detect(activity_units, 'animal'),
@@ -1324,7 +1324,7 @@ estado <- 'GO'
 quant_head <- 24410182
 
 emissions_sources |>
-  filter(year == 2022,
+  filter(year == 2020,
          str_detect(activity_units, 'animal'),
          # sector_name == 'agriculture',
          !source_name %in% nomes_uf,
@@ -1379,7 +1379,7 @@ my_plot_map <- function(.estados){
   geom_sf(fill="white", color="black",
           size=.15, show.legend = F) +
   geom_point(data = emissions_sources |>
-               filter(year == 2022, #>2014 & year <2023
+               filter(year == 2020, #>2014 & year <2023
                       sigla_uf == .estados,
                       str_detect(activity_units, 'animal'),
                       gas == 'co2e_100yr') |>
@@ -1424,7 +1424,7 @@ map(estados,my_plot_map)
 # my_plot_map_join <- function(.estados){
 #   left_join(city |> filter(abbrev_state == .estados),
 #           emissions_sources |>
-#             filter(year == 2022, #>2014 & year <2023
+#             filter(year == 2020, #>2014 & year <2023
 #                    sigla_uf == .estados,
 #                    !source_name %in% nomes_uf,
 #                    str_detect(activity_units, 'animal'),            #filtering the four subsectors for cattle
@@ -1474,7 +1474,7 @@ map(estados,my_plot_map)
 
  left_join(citys |> filter(abbrev_state %in% estados),
            emissions_sources |>
-             filter(year == 2022,                 #%in% 2015:2022
+             filter(year == 2020,                 #%in% 2015:2022
                     sigla_uf %in% estados,
                     !source_name %in% nomes_uf,
                     str_detect(activity_units, 'animal'),            #filtering the four subsectors for cattle
@@ -1572,7 +1572,7 @@ emissions_sources |>
 ```{r}
 emissions_sources |>
   filter(
-    year == 2022,                   #%in% 2015:2022
+    year == 2020,                   #%in% 2015:2022
     sigla_uf %in% estados, # <-----
     str_detect(activity_units, 'animal'),
     # sector_name == 'agriculture',
@@ -1640,7 +1640,7 @@ estado <- 'MG'
 my_plot_col_states <- function(.estados){
   emissions_sources |>
   filter(
-    year == 2022,
+    year == 2020,
     sigla_uf == .estados,
     !source_name %in% nomes_uf,
     #str_detect(activity_units, 'animal'),
@@ -1710,7 +1710,7 @@ map(estados,my_plot_col_states)
 # my_plot_subsector_states <- function(.estados){
   emissions_sources |>
   filter(
-         year == 2022,
+         year == 2020,
          str_detect(activity_units, 'animal'),
          gas == 'co2e_100yr',
          !source_name %in% nomes_uf,
@@ -1773,7 +1773,7 @@ map(estados,my_plot_col_states)
 
 # emissions_sources |>
 #   filter(
-#     year == 2022,
+#     year == 2020,
 #     sigla_uf %in% estados,
 #     !source_name %in% nomes_uf,
 #     gas == 'co2e_100yr',
@@ -1816,7 +1816,7 @@ map(estados,my_plot_col_states)
 ```{r}
 emissions_sources |>
   filter(
-    year == 2022,
+    year == 2020,
     sigla_uf %in% estados,
     !source_name %in% nomes_uf,
     gas == 'co2e_100yr',
@@ -1861,7 +1861,7 @@ emissions_sources |>
 
 ```{r}
 emissions_sources |>
-  filter(year == 2022,
+  filter(year == 2020,
          str_detect(activity_units, 'animal'),          #cattle
          # sector_name == 'agriculture',
          !source_name %in% nomes_uf,
