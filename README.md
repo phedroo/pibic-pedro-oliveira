@@ -48,24 +48,35 @@ glimpse(data_set)
     ## $ path              <chr> "oco2_LtCO2_150101_B11100Ar_230524221540s.nc4", "oco…
     ## $ state             <chr> "GO", "GO", "GO", "GO", "GO", "GO", "GO", "MT", "MT"…
 
-### Plotando os pontos
+## Análise de tendência dos dados de xCO2
 
 ``` r
-data_set |>
-  sample_n(1000) |> 
-  filter(year == 2019) |>
-  ggplot(aes(x = longitude, latitude)) +
-  geom_point()
+data_set |> 
+  sample_n(10000) |> 
+  ggplot(aes(x=year, y=xco2)) +
+  geom_point() +
+  geom_point(shape=21,color="black",fill="gray") +
+  geom_smooth(method = "lm") +
+  ggpubr::stat_regline_equation(ggplot2::aes(
+  label =  paste(..eq.label.., ..rr.label.., sep = "*plain(\",\")~~"))) +
+  theme_bw()
 ```
 
 ![](README_files/figure-gfm/unnamed-chunk-3-1.png)<!-- -->
 
 ``` r
+mod_trend_xco2 <- lm(xco2~year, 
+          data= data_set |> 
+            drop_na())
+```
+
+``` r
 # ## Avaliando o sinal de XCO2
 #Carrega a base filtrada
+estados <- c("MG","MT","MS","GO","PA")
 data_set_me <- data_set |>
   filter( 
-    state %in% c("MG","MT","MS","GO","PA")
+    state %in% estados
   )
 # Resumo da base
 glimpse(data_set_me)
@@ -85,16 +96,6 @@ glimpse(data_set_me)
     ## $ xco2_incerteza    <dbl> 0.5534429, 0.5050880, 0.6011925, 0.5258151, 0.549804…
     ## $ path              <chr> "oco2_LtCO2_150101_B11100Ar_230524221540s.nc4", "oco…
     ## $ state             <chr> "GO", "GO", "GO", "GO", "GO", "GO", "GO", "MT", "MT"…
-
-``` r
-data_set_me |>
-  filter(year == 2015) |>
-  sample_n(1000) |> 
-  ggplot(aes(x = longitude, latitude)) +
-  geom_point()
-```
-
-![](README_files/figure-gfm/unnamed-chunk-5-1.png)<!-- -->
 
 ``` r
 #Gráficos
@@ -596,12 +597,34 @@ glimpse(data_set)
     ## $ path              <chr> "UoL-GHG-L2-CH4-GOSAT-OCPR-20150201-fv9.0.nc", "UoL-…
     ## $ state             <chr> "AP", "AP", "PA", "PA", "PA", "MT", "MT", "MT", "MT"…
 
+## Análise de tendência dos dados xCH4
+
+``` r
+data_set |> 
+  sample_n(10000) |> 
+  ggplot(aes(x=year, y=xch4)) +
+  geom_point() +
+  geom_point(shape=21,color="black",fill="gray") +
+  geom_smooth(method = "lm") +
+  ggpubr::stat_regline_equation(ggplot2::aes(
+  label =  paste(..eq.label.., ..rr.label.., sep = "*plain(\",\")~~"))) +
+  theme_bw()
+```
+
+![](README_files/figure-gfm/unnamed-chunk-20-1.png)<!-- -->
+
+``` r
+mod_trend_xch4<- lm(xch4 ~ year, 
+          data= data_set |> 
+            drop_na())
+```
+
 ``` r
 # ## Avaliando o sinal de XCH4
 #Carrega a base filtrada
 data_set_me <- data_set |>
   filter( 
-    state %in% c("MG","MT","MS","GO","PA")
+    state %in% estados
   )
 # Resumo da base
 glimpse(data_set_me)
@@ -630,7 +653,7 @@ data_set_me |>
   geom_point()
 ```
 
-![](README_files/figure-gfm/unnamed-chunk-21-1.png)<!-- -->
+![](README_files/figure-gfm/unnamed-chunk-23-1.png)<!-- -->
 
 ``` r
 #Gráficos
@@ -643,7 +666,7 @@ data_set_me |>
   theme_bw()
 ```
 
-![](README_files/figure-gfm/unnamed-chunk-22-1.png)<!-- -->
+![](README_files/figure-gfm/unnamed-chunk-24-1.png)<!-- -->
 
 ``` r
 data_set_me |>
@@ -662,7 +685,7 @@ data_set_me |>
   )
 ```
 
-![](README_files/figure-gfm/unnamed-chunk-23-1.png)<!-- -->
+![](README_files/figure-gfm/unnamed-chunk-25-1.png)<!-- -->
 
 ``` r
 #Estatística Descritiva
@@ -729,7 +752,7 @@ data_set_me |>
   geom_point(data=grid_agg, aes(X,Y))
 ```
 
-![](README_files/figure-gfm/unnamed-chunk-26-1.png)<!-- -->
+![](README_files/figure-gfm/unnamed-chunk-28-1.png)<!-- -->
 
 ``` r
 # Isolando o banco de dados, pelo ano
@@ -787,7 +810,7 @@ vari_exp  |>
        y=expression(paste(gamma,"(h)")))
 ```
 
-![](README_files/figure-gfm/unnamed-chunk-29-1.png)<!-- -->
+![](README_files/figure-gfm/unnamed-chunk-31-1.png)<!-- -->
 
 ### Passo 3 - Ajuste dos modelos
 
@@ -833,19 +856,19 @@ plot(vari_exp,
                  r21,")",sep=""))
 ```
 
-![](README_files/figure-gfm/unnamed-chunk-30-1.png)<!-- -->
+![](README_files/figure-gfm/unnamed-chunk-32-1.png)<!-- -->
 
 ``` r
 plot(vari_exp,model=modelo_2, col=1,pl=F,pch=16,cex=1.2,cex.main=7,ylab=list("Semivariância",cex=1.3),xlab=list("Distância de Separação h (m)",cex=1.3),main =paste("Exp(C0= ",c02,"; C0+C1= ", c0_c12, "; a= ", a2,"; r2 = ", r22,")",sep=""))
 ```
 
-![](README_files/figure-gfm/unnamed-chunk-30-2.png)<!-- -->
+![](README_files/figure-gfm/unnamed-chunk-32-2.png)<!-- -->
 
 ``` r
 plot(vari_exp,model=modelo_3, col=1,pl=F,pch=16,cex=1.2,cex.main=7,ylab=list("Semivariância",cex=1.3),xlab=list("Distância de Separação h (m)",cex=1.3),main =paste("Gau(C0= ",c03,"; C0+C1= ", c0_c13, "; a= ", a3,"; r2 = ", r23,")",sep=""))
 ```
 
-![](README_files/figure-gfm/unnamed-chunk-30-3.png)<!-- -->
+![](README_files/figure-gfm/unnamed-chunk-32-3.png)<!-- -->
 
 ### Passo 4 - escolha do melhor modelo
 
@@ -927,7 +950,7 @@ for(j in 1:3){
     ## [using ordinary kriging]
     ## [using ordinary kriging]
 
-![](README_files/figure-gfm/unnamed-chunk-31-1.png)<!-- -->
+![](README_files/figure-gfm/unnamed-chunk-33-1.png)<!-- -->
 
     ## [using ordinary kriging]
     ## [using ordinary kriging]
@@ -980,7 +1003,7 @@ for(j in 1:3){
     ## [using ordinary kriging]
     ## [using ordinary kriging]
 
-![](README_files/figure-gfm/unnamed-chunk-31-2.png)<!-- -->
+![](README_files/figure-gfm/unnamed-chunk-33-2.png)<!-- -->
 
     ## [using ordinary kriging]
     ## [using ordinary kriging]
@@ -1033,7 +1056,7 @@ for(j in 1:3){
     ## [using ordinary kriging]
     ## [using ordinary kriging]
 
-![](README_files/figure-gfm/unnamed-chunk-31-3.png)<!-- -->
+![](README_files/figure-gfm/unnamed-chunk-33-3.png)<!-- -->
 
 ### Passo 5 - Selecionado o melhor modelo, vamos guardá-lo
 
@@ -1151,7 +1174,7 @@ glimpse(data_set)
 #Carrega a base filtrada
 data_set_me <- data_set |>
   filter( 
-    state %in% c("MG","MT","MS","GO","PA")
+    state %in% estados
   )
 # Resumo da base
 glimpse(data_set_me)
@@ -1193,7 +1216,7 @@ data_set_me |>
   geom_point()
 ```
 
-![](README_files/figure-gfm/unnamed-chunk-37-1.png)<!-- -->
+![](README_files/figure-gfm/unnamed-chunk-39-1.png)<!-- -->
 
 ``` r
 #Gráficos
@@ -1206,7 +1229,7 @@ data_set_me |>
   theme_bw()
 ```
 
-![](README_files/figure-gfm/unnamed-chunk-38-1.png)<!-- -->
+![](README_files/figure-gfm/unnamed-chunk-40-1.png)<!-- -->
 
 ``` r
 data_set_me |>
@@ -1225,7 +1248,7 @@ data_set_me |>
   )
 ```
 
-![](README_files/figure-gfm/unnamed-chunk-39-1.png)<!-- -->
+![](README_files/figure-gfm/unnamed-chunk-41-1.png)<!-- -->
 
 ``` r
 #Estatística Descritiva
@@ -1292,7 +1315,7 @@ data_set_me |>
   geom_point(data=grid_agg, aes(X,Y))
 ```
 
-![](README_files/figure-gfm/unnamed-chunk-42-1.png)<!-- -->
+![](README_files/figure-gfm/unnamed-chunk-44-1.png)<!-- -->
 
 ``` r
 # Isolando o banco de dados, pelo ano
@@ -1355,7 +1378,7 @@ vari_exp  |>
        y=expression(paste(gamma,"(h)")))
 ```
 
-![](README_files/figure-gfm/unnamed-chunk-45-1.png)<!-- -->
+![](README_files/figure-gfm/unnamed-chunk-47-1.png)<!-- -->
 
 ### Passo 3 - Ajuste dos modelos
 
@@ -1401,19 +1424,19 @@ plot(vari_exp,
                  r21,")",sep=""))
 ```
 
-![](README_files/figure-gfm/unnamed-chunk-46-1.png)<!-- -->
+![](README_files/figure-gfm/unnamed-chunk-48-1.png)<!-- -->
 
 ``` r
 plot(vari_exp,model=modelo_2, col=1,pl=F,pch=16,cex=1.2,cex.main=7,ylab=list("Semivariância",cex=1.3),xlab=list("Distância de Separação h (m)",cex=1.3),main =paste("Exp(C0= ",c02,"; C0+C1= ", c0_c12, "; a= ", a2,"; r2 = ", r22,")",sep=""))
 ```
 
-![](README_files/figure-gfm/unnamed-chunk-46-2.png)<!-- -->
+![](README_files/figure-gfm/unnamed-chunk-48-2.png)<!-- -->
 
 ``` r
 plot(vari_exp,model=modelo_3, col=1,pl=F,pch=16,cex=1.2,cex.main=7,ylab=list("Semivariância",cex=1.3),xlab=list("Distância de Separação h (m)",cex=1.3),main =paste("Gau(C0= ",c03,"; C0+C1= ", c0_c13, "; a= ", a3,"; r2 = ", r23,")",sep=""))
 ```
 
-![](README_files/figure-gfm/unnamed-chunk-46-3.png)<!-- -->
+![](README_files/figure-gfm/unnamed-chunk-48-3.png)<!-- -->
 
 ### Passo 4 - escolha do melhor modelo
 
@@ -1455,7 +1478,7 @@ for(j in 1:3){
     ## [using ordinary kriging]
     ## [using ordinary kriging]
 
-![](README_files/figure-gfm/unnamed-chunk-47-1.png)<!-- -->
+![](README_files/figure-gfm/unnamed-chunk-49-1.png)<!-- -->
 
     ## [using ordinary kriging]
     ## [using ordinary kriging]
@@ -1468,7 +1491,7 @@ for(j in 1:3){
     ## [using ordinary kriging]
     ## [using ordinary kriging]
 
-![](README_files/figure-gfm/unnamed-chunk-47-2.png)<!-- -->
+![](README_files/figure-gfm/unnamed-chunk-49-2.png)<!-- -->
 
     ## [using ordinary kriging]
     ## [using ordinary kriging]
@@ -1481,7 +1504,7 @@ for(j in 1:3){
     ## [using ordinary kriging]
     ## [using ordinary kriging]
 
-![](README_files/figure-gfm/unnamed-chunk-47-3.png)<!-- -->
+![](README_files/figure-gfm/unnamed-chunk-49-3.png)<!-- -->
 
 ### Passo 5 - Selecionado o melhor modelo, vamos guardá-lo
 
@@ -1553,23 +1576,43 @@ dev.off()
 ### Rodar somente após todos os mapas gerados
 
 ``` r
-# list_rds <- list.files("output/maps-kgr/",
-#            pattern = ".rds",
-#            full.names = TRUE)
-# kgr_maps <- map_df(list_rds, rds_reader)
-# 
-# kgr_maps_group <- kgr_maps |>
-#   group_by(variable, state, X, Y) |>
-#   summarise(
-#     n = n()
-#   ) |> select(-n)
-# 
-# kgr_maps |>
-#   group_by(variable, state) |> 
-#   summarise(
-#     n = n()
-#   )
+list_rds <- list.files("output/maps-kgr/",
+           pattern = ".rds",
+           full.names = TRUE)
+kgr_maps <- map_df(list_rds, rds_reader)
+
+kgr_maps_group <- kgr_maps |>
+  group_by(variable, state, X, Y) |>
+  summarise(
+    n = n()
+  ) |> select(-n)
+
+kgr_maps |>
+  group_by(variable, state) |>
+  summarise(
+    n = n()
+  )
 ```
+
+    ## # A tibble: 15 × 3
+    ## # Groups:   variable [3]
+    ##    variable state      n
+    ##    <chr>    <chr>  <int>
+    ##  1 sif      GO     70068
+    ##  2 sif      MG    111828
+    ##  3 sif      MS     72708
+    ##  4 sif      MT    180720
+    ##  5 sif      PA    241032
+    ##  6 xch4     GO     70086
+    ##  7 xch4     MG    113928
+    ##  8 xch4     MS     69198
+    ##  9 xch4     MT    178626
+    ## 10 xch4     PA    244432
+    ## 11 xco2     GO     70134
+    ## 12 xco2     MG    120156
+    ## 13 xco2     MS     74136
+    ## 14 xco2     MT    180936
+    ## 15 xco2     PA    246126
 
 ``` r
 # state <- kgr_maps_group |> pull(state)
@@ -1594,592 +1637,1314 @@ dev.off()
 #     }
 #   }
 # }
-
 # kgr_maps_group <- kgr_maps_group |>
 #   add_column(
 #     city = v_city
 #   )
-# kgr_maps_group <- read_rds("data/kgr-maps-cities-groups.rds")
-# 
-# kgr_maps <- kgr_maps |>
-#   left_join(
-#     kgr_maps_group |>
-#       select(X, Y, city) ,by = c("X","Y")
-#   )
-# readr::write_rds(kgr_maps_group,"data/kgr-maps-cities-groups.rds")
+
+kgr_maps_group <- read_rds("data/kgr-maps-cities-groups.rds")
+
+kgr_maps <- kgr_maps |>
+  full_join(
+    kgr_maps_group |>
+      ungroup() |> 
+      select(X, Y, city) ,by = c("X","Y"),
+  )
 ```
 
-# Incorporação dos dados do CT
+# Retirando atendência
+
+``` r
+# readr::write_rds(kgr_maps_group,"data/kgr-maps-cities-groups.rds")
+a_co2 <- mod_trend_xco2$coefficients[[1]]
+b_co2 <- mod_trend_xco2$coefficients[[2]]
+a_ch4 <- mod_trend_xch4$coefficients[[1]]
+b_ch4 <- mod_trend_xch4$coefficients[[2]]
+
+glimpse(kgr_maps)
+```
+
+    ## Rows: 2,325,318
+    ## Columns: 8
+    ## $ variable  <chr> "sif", "sif", "sif", "sif", "sif", "sif", "sif", "sif", "sif…
+    ## $ state     <chr> "GO", "GO", "GO", "GO", "GO", "GO", "GO", "GO", "GO", "GO", …
+    ## $ year      <dbl> 2015, 2015, 2015, 2015, 2015, 2015, 2015, 2015, 2015, 2015, …
+    ## $ X         <dbl> -50.90, -50.85, -51.00, -50.95, -50.90, -51.00, -50.95, -50.…
+    ## $ Y         <dbl> -19.45, -19.45, -19.40, -19.40, -19.40, -19.35, -19.35, -19.…
+    ## $ value     <dbl> 0.5935694, 0.5899778, 0.5990964, 0.5951511, 0.5913777, 0.596…
+    ## $ value_std <dbl> 0.1179227, 0.1181349, 0.1155714, 0.1157388, 0.1159298, 0.113…
+    ## $ city      <chr> "Itajá", "Itajá", "Itajá", "Itajá", "Itajá", "Itajá", "Itajá…
+
+``` r
+kgr_maps_detrend <- kgr_maps |> 
+  group_by(variable) |> 
+  mutate(
+    value_est = ifelse(variable =="xco2",a_co2+b_co2*year,
+                       ifelse(variable =="xch4",a_ch4+b_ch4*year,value)),
+    delta = ifelse(variable =="sif",value,value_est-value),
+    value_detrend = ifelse(variable =="xco2",(a_co2-delta)-(mean(value)-a_co2),
+                       ifelse(variable =="xch4",(a_ch4-delta)-(mean(value)-a_ch4),value)),
+    value = value_detrend
+  ) |> ungroup() |> 
+  select(-value_est,-delta,-value_detrend)
+```
+
+## Cálculo do Beta para cada municípios
+
+``` r
+kgr_maps_beta <- kgr_maps_detrend |> 
+  group_by(variable,state,city,year) |> 
+  summarise(
+    media = mean(value,na.rm = TRUE),
+    desv_pad = mean(value_std)
+  ) |> 
+  group_by(variable,state,city) |>
+  nest() |> 
+  ungroup()
+
+get_reg_lin <- function(df, par_return = "beta"){
+  y <- df$year
+  x <- df$media
+  mod <- lm(y~x)
+  value <- mod$coefficients[[2]]
+  if(par_return == "beta") return(value)
+}
+kgr_maps_beta <- kgr_maps_beta |> 
+  mutate(
+    beta = map(data,get_reg_lin)
+  ) |> 
+  select(-data) |> 
+  unnest()
+
+glimpse(kgr_maps_beta)
+```
+
+    ## Rows: 4,299
+    ## Columns: 4
+    ## $ variable <chr> "sif", "sif", "sif", "sif", "sif", "sif", "sif", "sif", "sif"…
+    ## $ state    <chr> "GO", "GO", "GO", "GO", "GO", "GO", "GO", "GO", "GO", "GO", "…
+    ## $ city     <chr> "Abadia De Goiás", "Abadiânia", "Acreúna", "Adelândia", "Alex…
+    ## $ beta     <dbl> 5.693984, 5.854820, 5.068227, 6.334005, 5.680407, 4.805122, 7…
+
+## Mapeando o beta por cidades
+
+``` r
+city_kgr_beta <- left_join(citys |> filter(abbrev_state %in% estados),
+           kgr_maps_beta |>
+             pivot_wider(names_from = variable,
+                         values_from = beta,names_prefix = "beta_") |> 
+             rename(abbrev_state = state,name_muni =city),
+           by=c("abbrev_state","name_muni"))
+```
+
+``` r
+city_kgr_beta |>
+     ggplot() +
+     geom_sf(aes(fill=beta_sif), color="transparent",
+             size=.05, show.legend = TRUE)  +
+   geom_sf(data=mapas_contorno1, fill="transparent", color="red", size=3, show.legend = FALSE) +
+   geom_sf(data=mapas_contorno2, fill="transparent", color="red", size=3, show.legend = FALSE) +
+   geom_sf(data=mapas_contorno3, fill="transparent", color="red", size=3, show.legend = FALSE) +
+   geom_sf(data=mapas_contorno4, fill="transparent", color="red", size=3, show.legend = FALSE) +
+   geom_sf(data=mapas_contorno5, fill="transparent", color="red", size=3, show.legend = FALSE) +
+     theme_bw() +
+   theme(
+     axis.text.x = element_text(size = rel(.9), color = "black"),
+     axis.title.x = element_text(size = rel(1.1), color = "black"),
+     axis.text.y = element_text(size = rel(.9), color = "black"),
+     axis.title.y = element_text(size = rel(1.1), color = "black"),
+     legend.text = element_text(size = rel(1), color = "black"),
+     legend.title = element_text(face = 'bold', size = rel(1.2)),
+     legend.position = c(1.29, .5)
+     ) +
+   labs(fill = 'Beta_sif',
+         x = 'Longitude',
+         y = 'Latitude') +
+     scale_fill_viridis_c(option = "inferno")
+```
+
+![](README_files/figure-gfm/unnamed-chunk-57-1.png)<!-- -->
+
+``` r
+city_kgr_beta |>
+     ggplot() +
+     geom_sf(aes(fill=beta_xch4), color="transparent",
+             size=.05, show.legend = TRUE)  +
+   geom_sf(data=mapas_contorno1, fill="transparent", color="red", size=3, show.legend = FALSE) +
+   geom_sf(data=mapas_contorno2, fill="transparent", color="red", size=3, show.legend = FALSE) +
+   geom_sf(data=mapas_contorno3, fill="transparent", color="red", size=3, show.legend = FALSE) +
+   geom_sf(data=mapas_contorno4, fill="transparent", color="red", size=3, show.legend = FALSE) +
+   geom_sf(data=mapas_contorno5, fill="transparent", color="red", size=3, show.legend = FALSE) +
+     theme_bw() +
+   theme(
+     axis.text.x = element_text(size = rel(.9), color = "black"),
+     axis.title.x = element_text(size = rel(1.1), color = "black"),
+     axis.text.y = element_text(size = rel(.9), color = "black"),
+     axis.title.y = element_text(size = rel(1.1), color = "black"),
+     legend.text = element_text(size = rel(1), color = "black"),
+     legend.title = element_text(face = 'bold', size = rel(1.2)),
+     legend.position = c(1.29, .5)
+     ) +
+   labs(fill = 'Beta_xch4',
+         x = 'Longitude',
+         y = 'Latitude') +
+     scale_fill_viridis_c(option = "inferno")
+```
+
+![](README_files/figure-gfm/unnamed-chunk-58-1.png)<!-- -->
+
+``` r
+city_kgr_beta |>
+     ggplot() +
+     geom_sf(aes(fill=beta_xco2), color="transparent",
+             size=.05, show.legend = TRUE)  +
+   geom_sf(data=mapas_contorno1, fill="transparent", color="red", size=3, show.legend = FALSE) +
+   geom_sf(data=mapas_contorno2, fill="transparent", color="red", size=3, show.legend = FALSE) +
+   geom_sf(data=mapas_contorno3, fill="transparent", color="red", size=3, show.legend = FALSE) +
+   geom_sf(data=mapas_contorno4, fill="transparent", color="red", size=3, show.legend = FALSE) +
+   geom_sf(data=mapas_contorno5, fill="transparent", color="red", size=3, show.legend = FALSE) +
+     theme_bw() +
+   theme(
+     axis.text.x = element_text(size = rel(.9), color = "black"),
+     axis.title.x = element_text(size = rel(1.1), color = "black"),
+     axis.text.y = element_text(size = rel(.9), color = "black"),
+     axis.title.y = element_text(size = rel(1.1), color = "black"),
+     legend.text = element_text(size = rel(1), color = "black"),
+     legend.title = element_text(face = 'bold', size = rel(1.2)),
+     legend.position = c(1.29, .5)
+     ) +
+   labs(fill = 'Beta_xco2',
+         x = 'Longitude',
+         y = 'Latitude') +
+     scale_fill_viridis_c(option = "inferno")
+```
+
+![](README_files/figure-gfm/unnamed-chunk-59-1.png)<!-- -->
+
+## Inspeção por estado
+
+``` r
+variables <- c("beta_sif","beta_xch4","beta_xco2")
+my_plot_map_beta <- function(.estado, .variable){
+  city_kgr_beta |>
+    filter(abbrev_state == .estado) |> 
+    ggplot() +
+     geom_sf(aes_string(fill=.variable), color="black",
+              size=.05, show.legend = TRUE)  +
+    theme_bw() +
+    theme(
+      axis.text.x = element_text(size = rel(.9), color = "black"),
+      axis.title.x = element_text(size = rel(1.1), color = "black"),
+      axis.text.y = element_text(size = rel(.9), color = "black"),
+      axis.title.y = element_text(size = rel(1.1), color = "black"),
+      legend.text = element_text(size = rel(1), color = "black"),
+      legend.title = element_text(face = 'bold', size = rel(1.2)),
+      legend.position = c(1.29, .5)
+    ) +
+     labs(fill =.variable,
+          x = 'Longitude',
+          y = 'Latitude') +
+    scale_fill_gradient(low="yellow",high = "red")
+}
+my_plot_map_beta("PA", "beta_xch4")
+```
+
+![](README_files/figure-gfm/unnamed-chunk-60-1.png)<!-- -->
+
+``` r
+map(estados,my_plot_map_beta,.variable="beta_xco2")
+```
+
+    ## [[1]]
+
+![](README_files/figure-gfm/unnamed-chunk-60-2.png)<!-- -->
+
+    ## 
+    ## [[2]]
+
+![](README_files/figure-gfm/unnamed-chunk-60-3.png)<!-- -->
+
+    ## 
+    ## [[3]]
+
+![](README_files/figure-gfm/unnamed-chunk-60-4.png)<!-- -->
+
+    ## 
+    ## [[4]]
+
+![](README_files/figure-gfm/unnamed-chunk-60-5.png)<!-- -->
+
+    ## 
+    ## [[5]]
+
+![](README_files/figure-gfm/unnamed-chunk-60-6.png)<!-- -->
+
+``` r
+map(estados,my_plot_map_beta,.variable="beta_xch4")
+```
+
+    ## [[1]]
+
+![](README_files/figure-gfm/unnamed-chunk-60-7.png)<!-- -->
+
+    ## 
+    ## [[2]]
+
+![](README_files/figure-gfm/unnamed-chunk-60-8.png)<!-- -->
+
+    ## 
+    ## [[3]]
+
+![](README_files/figure-gfm/unnamed-chunk-60-9.png)<!-- -->
+
+    ## 
+    ## [[4]]
+
+![](README_files/figure-gfm/unnamed-chunk-60-10.png)<!-- -->
+
+    ## 
+    ## [[5]]
+
+![](README_files/figure-gfm/unnamed-chunk-60-11.png)<!-- -->
+
+``` r
+map(estados,my_plot_map_beta,.variable="beta_sif")
+```
+
+    ## [[1]]
+
+![](README_files/figure-gfm/unnamed-chunk-60-12.png)<!-- -->
+
+    ## 
+    ## [[2]]
+
+![](README_files/figure-gfm/unnamed-chunk-60-13.png)<!-- -->
+
+    ## 
+    ## [[3]]
+
+![](README_files/figure-gfm/unnamed-chunk-60-14.png)<!-- -->
+
+    ## 
+    ## [[4]]
+
+![](README_files/figure-gfm/unnamed-chunk-60-15.png)<!-- -->
+
+    ## 
+    ## [[5]]
+
+![](README_files/figure-gfm/unnamed-chunk-60-16.png)<!-- --> \#
+Incorporação dos dados do CT
 
 ## IMPORTANDO A BASE DE DADOS
 
 ``` r
-# brazil_ids <- read_rds("data/df_nome.rds")
-# nomes_uf <- c(brazil_ids$nome_uf |> unique(),"Brazil")
-# dados2 <- read_rds('data/emissions_sources.rds')
+brazil_ids <- read_rds("data/df_nome.rds")
+nomes_uf <- c(brazil_ids$nome_uf |> unique(),"Brazil")
+emissions_sources <- read_rds('data/emissions_sources.rds')
 ```
 
-<!-- ## CARACTERIZANDO MUNICÍPIO -->
-<!-- ```{r} -->
-<!-- cities <- citys  -->
-<!-- ``` -->
-<!-- ```{r} -->
-<!-- # DADOS IBGE: -->
-<!-- # Quantidade de Cabeças de MS: 18433728 -->
-<!-- # Quantidade de Cabeças de MT: 34246313 -->
-<!-- # Quantidade de Cabeças de MG: 22993105 -->
-<!-- # Quantidade de Cabeças de GO: 24410182 -->
-<!-- # Quantidade de Cabeças de PA: 24791060 -->
-<!-- # Quantidade de municípios de MS: 79 -->
-<!-- # Quantidade de municípios de MT: 141 -->
-<!-- # Quantidade de municípios de MG: 853 -->
-<!-- # Quantidade de municípios de GO: 246 -->
-<!-- # Quantidade de municípios de PA: 144 -->
-<!-- estado <- 'GO' -->
-<!-- quant_head <- 24410182 -->
-<!-- dados2 |> -->
-<!--   filter(year == 2022, -->
-<!--          str_detect(activity_units, 'animal'), -->
-<!--          # sector_name == 'agriculture', -->
-<!--          !source_name %in% nomes_uf, -->
-<!--          sigla_uf == estado, -->
-<!--          gas == 'co2e_100yr') |> -->
-<!--   group_by(sigla_uf) |>                  #!! -->
-<!--   summarise( -->
-<!--     emission_total = sum(emissions_quantity)/1e6, -->
-<!--     mean_head = sum(emissions_quantity)/quant_head -->
-<!--     ) |> -->
-<!--   arrange(- emission_total) -->
-<!-- ``` -->
-<!-- ## CRIANDO TEMA GRAFICO -->
-<!-- ```{r} -->
-<!-- my_theme <- theme( -->
-<!--        # axis.text.x = element_text(size = rel(1.25)), -->
-<!--         axis.title.x = element_text(size = rel(1.4)), -->
-<!--        # axis.text.y = element_text(size = rel(1.3)), -->
-<!--         axis.title.y = element_text(size = rel(1.4)), -->
-<!--         legend.text = element_text(size = rel(0.9)), -->
-<!--        # legend.title = element_text(size = rel(1.7)), -->
-<!--        title = element_text(face = 'bold'), -->
-<!--        legend.position = "top", -->
-<!--        legend.background = element_rect(fill = "#fffff0", color = "black")) -->
-<!-- my_theme_add <- function(.my_theme){ -->
-<!--  theme( -->
-<!--        # axis.text.x = element_text(size = rel(1.25)), -->
-<!--         axis.title.x = element_text(size = rel(1.4)), -->
-<!--        # axis.text.y = element_text(size = rel(1.3)), -->
-<!--         axis.title.y = element_text(size = rel(1.4)), -->
-<!--         legend.text = element_text(size = rel(0.9)), -->
-<!--        # legend.title = element_text(size = rel(1.7)), -->
-<!--        title = element_text(face = 'bold'), -->
-<!--        legend.position = "top", -->
-<!--        legend.background = element_rect(fill = "transparent", color = "black")) -->
-<!-- } -->
-<!-- ``` -->
-<!-- ## MAPEAR  -->
-<!-- ### CONTRUINDO MAPA COM CLASSES  -->
-<!-- ```{r} -->
-<!-- #my_state <- "MS" ### <- -->
-<!-- estados <- c("PA", "MS", "MG", "MT", "GO") -->
-<!-- my_plot_map <- function(.estados){ -->
-<!--   citys |>   -->
-<!--   select(abbrev_state) |> -->
-<!--   filter( -->
-<!--     abbrev_state == .estados) |> -->
-<!--   ggplot() + -->
-<!--   geom_sf(fill="white", color="black", -->
-<!--           size=.15, show.legend = F) + -->
-<!--   geom_point(data = dados2 |> -->
-<!--                filter(year == 2022, #>2014 & year <2023 -->
-<!--                       sigla_uf == .estados, -->
-<!--                       str_detect(activity_units, 'animal'), -->
-<!--                       gas == 'co2e_100yr') |> -->
-<!--                mutate( -->
-<!--                  classe_emissao = case_when(  -->
-<!--                    emissions_quantity <0.1e6 ~ '< 0.1 Mton', -->
-<!--                    emissions_quantity <0.4e6 ~ '< 0.4 Mton', -->
-<!--                    emissions_quantity <1e6 ~ '< 1 Mton', -->
-<!--                    emissions_quantity >=1e6 ~ '>= 1 Mton' -->
-<!--                  ) -->
-<!--                ), -->
-<!--              size = 1.5, -->
-<!--              aes(lon,lat, col = classe_emissao)) + -->
-<!--     theme_bw() + -->
-<!--   theme( -->
-<!--     axis.text.x = element_text(size = rel(1), color = "#222222"), -->
-<!--     axis.title.x = element_text(size = rel(1.3), color = "#222222"), -->
-<!--     axis.text.y = element_text(size = rel(1), color = "#222222"), -->
-<!--     axis.title.y = element_text(size = rel(1.3), color = "#222222"), -->
-<!--     legend.text = element_text(size = rel(1.3), color = "#222222"), -->
-<!--     legend.title = element_text(size = rel(1.5)), -->
-<!--     ) + -->
-<!--    labs(col = 'CO'[2]~'eq emission', -->
-<!--         x = 'Longitude', -->
-<!--         y = 'Latitude' -->
-<!--      #title = paste0("CO2e emission for", my_state), -->
-<!--         # caption = 'Data Source: Climate TRACE', -->
-<!--      ) -->
-<!-- } -->
-<!-- map(estados,my_plot_map) -->
-<!-- # ggsave('GO.png', dpi = 3000, width = 9, height = 5.5) -->
-<!-- ``` -->
-<!-- ```{r} -->
-<!-- # estado <- "MG" ### <- -->
-<!-- # estados <- c("MS", "PA", "GO", "MT", "MG") -->
-<!-- #  -->
-<!-- # my_plot_map_join <- function(.estados){ -->
-<!-- #   left_join(city |> filter(abbrev_state == .estados), -->
-<!-- #           dados2 |> -->
-<!-- #             filter(year == 2022, #>2014 & year <2023 -->
-<!-- #                    sigla_uf == .estados, -->
-<!-- #                    !source_name %in% nomes_uf, -->
-<!-- #                    str_detect(activity_units, 'animal'),            #filtering the four subsectors for cattle -->
-<!-- #                    gas == 'co2e_100yr') |> -->
-<!-- #             group_by(city_ref, sigla_uf)  |> -->
-<!-- #             summarise(emissions_quantity = -->
-<!-- #                         sum(emissions_quantity, na.rm = TRUE)) |> -->
-<!-- #             rename(name_muni = city_ref) , -->
-<!-- #           by="name_muni") |> -->
-<!-- #   mutate(emissions_quantity = replace_na(emissions_quantity,0)) |> -->
-<!-- #   mutate( -->
-<!-- #     classe_emissao = case_when( -->
-<!-- #       emissions_quantity <0.1e6 ~ '< 0.1 Mton', -->
-<!-- #       emissions_quantity <0.4e6 ~ '< 0.4 Mton', -->
-<!-- #       emissions_quantity <0.7e6 ~ '< 0.7 Mton', -->
-<!-- #       emissions_quantity >=1 ~ '>= 1 Mton' -->
-<!-- #     ) -->
-<!-- #   ) |> -->
-<!-- #     ggplot() + -->
-<!-- #     geom_sf(aes(fill=classe_emissao), color="black", -->
-<!-- #             size=.15, show.legend = TRUE)  + -->
-<!-- #     theme_bw() + -->
-<!-- #   theme( -->
-<!-- #     axis.text.x = element_text(size = rel(1), color = "#222222"), -->
-<!-- #     axis.title.x = element_text(size = rel(1.3), color = "#222222"), -->
-<!-- #     axis.text.y = element_text(size = rel(1), color = "#222222"), -->
-<!-- #     axis.title.y = element_text(size = rel(1.3), color = "#222222"), -->
-<!-- #     legend.text = element_text(size = rel(1.3), color = "#222222"), -->
-<!-- #     legend.title = element_text(size = rel(1.5)), -->
-<!-- #     ) + -->
-<!-- #    labs(fill = 'CO'[2]'e emission', -->
-<!-- #         x = 'Longitude', -->
-<!-- #         y = 'Latitude' -->
-<!-- #      #title = paste0("CO2e emission for", my_state), -->
-<!-- #         # caption = 'Data Source: Climate TRACE', -->
-<!-- #      ) + -->
-<!-- #     scale_fill_viridis_d() -->
-<!-- # } -->
-<!-- # map(estados,my_plot_map_join) -->
-<!-- # ggsave('MGg_col.png', dpi = 2000, width = 9, height = 5.5) -->
-<!-- #Gerando os mapas em uma única figura -->
-<!--  mapas_contorno1 <- read_state(code_state="MS") -->
-<!--  mapas_contorno2 <- read_state(code_state="MT") -->
-<!--  mapas_contorno3 <- read_state(code_state="MG") -->
-<!--  mapas_contorno4 <- read_state(code_state="PA") -->
-<!--  mapas_contorno5 <- read_state(code_state="GO") -->
-<!--  left_join(citys |> filter(abbrev_state %in% estados), -->
-<!--            dados2 |> -->
-<!--              filter(year == 2022,                 #%in% 2015:2022 -->
-<!--                     sigla_uf %in% estados, -->
-<!--                     !source_name %in% nomes_uf, -->
-<!--                     str_detect(activity_units, 'animal'),            #filtering the four subsectors for cattle -->
-<!--                     gas == 'co2e_100yr') |> -->
-<!--              group_by(city_ref, sigla_uf)  |> -->
-<!--              summarise(emissions_quantity = -->
-<!--                          sum(emissions_quantity, na.rm = TRUE)) |> -->
-<!--              rename(name_muni = city_ref), -->
-<!--            by="name_muni") |> -->
-<!--    mutate(emissions_quantity = replace_na(emissions_quantity, 0)) |> -->
-<!--    mutate( -->
-<!--      classe_emissao = case_when( -->
-<!--        emissions_quantity <.1e6 ~ ' <  0,1 Mton', -->
-<!--        emissions_quantity <.5e6 ~ ' <  0,5 Mton',  -->
-<!--        emissions_quantity < 1e6 ~ ' <  1,0 Mton', -->
-<!--        emissions_quantity >=1e6 ~ '>= 1,0 Mton' -->
-<!--      ) -->
-<!--    ) |> -->
-<!--      ggplot() + -->
-<!--      geom_sf(aes(fill=classe_emissao), color="black", -->
-<!--              size=.05, show.legend = TRUE)  + -->
-<!--    geom_sf(data=mapas_contorno1, fill="transparent", color="red", size=3, show.legend = FALSE) + -->
-<!--    geom_sf(data=mapas_contorno2, fill="transparent", color="red", size=3, show.legend = FALSE) + -->
-<!--    geom_sf(data=mapas_contorno3, fill="transparent", color="red", size=3, show.legend = FALSE) + -->
-<!--    geom_sf(data=mapas_contorno4, fill="transparent", color="red", size=3, show.legend = FALSE) + -->
-<!--    geom_sf(data=mapas_contorno5, fill="transparent", color="red", size=3, show.legend = FALSE) + -->
-<!--      theme_bw() + -->
-<!--    theme( -->
-<!--      axis.text.x = element_text(size = rel(.9), color = "black"), -->
-<!--      axis.title.x = element_text(size = rel(1.1), color = "black"), -->
-<!--      axis.text.y = element_text(size = rel(.9), color = "black"), -->
-<!--      axis.title.y = element_text(size = rel(1.1), color = "black"), -->
-<!--      legend.text = element_text(size = rel(1), color = "black"), -->
-<!--      legend.title = element_text(face = 'bold', size = rel(1.2)), -->
-<!--      legend.position = c(1.29, .5) -->
-<!--      ) + -->
-<!--    labs(fill = 'Classe de emissão', -->
-<!--          x = 'Longitude', -->
-<!--          y = 'Latitude') + -->
-<!--      scale_fill_viridis_d() -->
-<!--  # ggsave('Maps_states_red.png') -->
-<!--  ggsave('mapa_nova_classe.png') -->
-<!-- ``` -->
-<!-- ### Verificando maiores cidades emissoras -->
-<!-- ```{r} -->
-<!-- # Only for analysis -->
-<!-- dados2 |>  -->
-<!--   #glimpse() |>  -->
-<!--   #select(sigla_uf, emissions_quantity, city_ref, gas, activity_units, sector_name, sub_sector) |>  -->
-<!--   filter(sigla_uf == "PA", -->
-<!--          gas == 'co2e_100yr', -->
-<!--          year == 2015, -->
-<!--          sector_name == 'agriculture', -->
-<!--          !source_name %in% nomes_uf, -->
-<!--          # !sub_sector %in% c("forest-land-clearing", -->
-<!--          #                    "forest-land-degradation", -->
-<!--          #                    "shrubgrass-fires", -->
-<!--          #                    "forest-land-fires", -->
-<!--          #                    "wetland-fires", -->
-<!--          #                    "removals"), -->
-<!--          # str_detect(activity_units, 'animal'), -->
-<!--          # sub_sector == 'enteric-fermentation-cattle-pasture', -->
-<!--                          # 'manure-left-on-pasture-cattle'), -->
-<!--          city_ref == 'São Félix Do Xingu'                       #change the municipality here -->
-<!--           ) #|>  -->
-<!--   # group_by(sub_sector, sector_name) |>  -->
-<!--   # summarise( -->
-<!--   #    emission = sum(emissions_quantity, na.rm = T) -->
-<!--   #  ) -->
-<!-- ``` -->
-<!-- ## VISUALIZANDO MAIORES EMISSORES PARA O SETOR DE AGRICULTURA OU P/ ANIMAL  -->
-<!-- ```{r} -->
-<!-- dados2 |> -->
-<!--   filter( -->
-<!--     year == 2022,                   #%in% 2015:2022 -->
-<!--     sigla_uf %in% estados, # <----- -->
-<!--     str_detect(activity_units, 'animal'), -->
-<!--     # sector_name == 'agriculture', -->
-<!--     !source_name %in% nomes_uf, -->
-<!--     gas == 'co2e_100yr' -->
-<!--     ) |> -->
-<!--   group_by(city_ref, sigla_uf, sub_sector) |> -->
-<!--   summarise( -->
-<!--     emission = sum(emissions_quantity, na.rm = T) -->
-<!--   ) |> -->
-<!--   group_by(city_ref,sigla_uf) |> -->
-<!--   mutate( -->
-<!--     emission_total = sum(emission, na.rm = T) -->
-<!--   ) |> -->
-<!--   ungroup() |> -->
-<!--   group_by(sigla_uf) |>  -->
-<!--   mutate( -->
-<!--     city_ref = city_ref |> fct_reorder(emission_total) |> -->
-<!--       fct_lump(n = 3, w = emission_total)) |> -->
-<!--   filter(city_ref != "Other") |> -->
-<!--   mutate( -->
-<!--       sub_sector = case_when(                  -->
-<!--         sub_sector == "enteric-fermentation-cattle-feedlot" ~ "FEGC", -->
-<!--         sub_sector == "enteric-fermentation-cattle-pasture" ~ "FEGP", -->
-<!--         sub_sector == "manure-left-on-pasture-cattle"  ~ "EP",     -->
-<!--         sub_sector == "manure-management-cattle-feedlot" ~ "GEC", -->
-<!--         sub_sector == 'cropland-fires' ~ 'CF', -->
-<!--         sub_sector == 'synthetic-fertilizer-application' ~ 'SF application' -->
-<!--       )) |> -->
-<!--   ggplot(aes(emission/1e6, #passar de ton para Mton -->
-<!--              city_ref, -->
-<!--              fill = sub_sector)) + -->
-<!--   geom_col(col="black", lwd = 0.1) + -->
-<!--   xlab(bquote(Emissião~CO[2]~e~(Mton))) + -->
-<!--   labs(#x = 'Emission (Mton)', -->
-<!--        y = 'Cidade', -->
-<!--        fill = 'Subsetor') + -->
-<!--   theme_bw() + -->
-<!--   theme( -->
-<!--     axis.text.x = element_text(size = rel(1)), -->
-<!--     # axis.title.x = element_text(size = rel(2)), -->
-<!--     axis.text.y = element_text(size = rel(1.3)), -->
-<!--     # axis.title.y = element_text(size = rel(2)), -->
-<!--     legend.text = element_text(size = rel(1)), -->
-<!--     #legend.title = element_text(size = rel(1.7)), -->
-<!--     title = element_text(face = 'bold'), -->
-<!--     legend.position = 'top', -->
-<!--     legend.background = element_rect(fill = "transparent", color = "black")) + -->
-<!--       scale_fill_viridis_d(option ='plasma') + -->
-<!--   facet_wrap(~sigla_uf,scales = "free",ncol = 2) + -->
-<!--   annotate("text", -->
-<!--            x=2, -->
-<!--            y=1, -->
-<!--            label = ".", -->
-<!--            size=0.1) -->
-<!-- ggsave('top3cidades_emissão_states.png') -->
-<!-- ``` -->
-<!-- ```{r} -->
-<!-- # Only for exemplification in the report -->
-<!-- estado <- 'MG' -->
-<!-- my_plot_col_states <- function(.estados){ -->
-<!--   dados2 |> -->
-<!--   filter( -->
-<!--     year == 2022, -->
-<!--     sigla_uf == .estados, -->
-<!--     !source_name %in% nomes_uf, -->
-<!--     #str_detect(activity_units, 'animal'), -->
-<!--     sector_name == 'agriculture',   -->
-<!--     gas == 'co2e_100yr' -->
-<!--     ) |> -->
-<!--   group_by(city_ref, sub_sector) |> -->
-<!--   summarise( -->
-<!--     emission = sum(emissions_quantity, na.rm = T) -->
-<!--   ) |> -->
-<!--   group_by(city_ref) |> -->
-<!--   mutate( -->
-<!--     emission_total = sum(emission, na.rm = T) -->
-<!--   ) |> -->
-<!--   ungroup() |> -->
-<!--   mutate( -->
-<!--     city_ref = city_ref |> fct_reorder(emission_total) |> -->
-<!--       fct_lump(n = 5, w = emission_total)) |> -->
-<!--   filter(city_ref != "Other") |> -->
-<!--     mutate( -->
-<!--       sub_sector = case_when( -->
-<!--         sub_sector == "cropland-fires"  ~ "Cropland fires",                    -->
-<!--         sub_sector == "enteric-fermentation-cattle-feedlot" ~ "EFC feedlot", -->
-<!--         sub_sector == "enteric-fermentation-cattle-pasture" ~ "EFC pasture", -->
-<!--         sub_sector == "manure-left-on-pasture-cattle"  ~ "ML pasture cattle",     -->
-<!--         sub_sector == "manure-management-cattle-feedlot" ~ "MMC feedlot",   -->
-<!--         sub_sector == "rice-cultivation" ~ "rice cultivation",                   -->
-<!--         sub_sector == "synthetic-fertilizer-application" ~ "SF application",  -->
-<!--       ) -->
-<!--     ) |>  -->
-<!--   ggplot(aes(emission/1e6, -->
-<!--              city_ref, -->
-<!--              fill = sub_sector)) + -->
-<!--   geom_col(col="black", lwd = 0.1) + -->
-<!--     xlab(bquote(Emission~CO[2]~e~(Mton))) + -->
-<!--   labs(#x = 'Emission (Mton)', -->
-<!--        y = 'City', -->
-<!--        fill = '') + -->
-<!--   theme_bw() + -->
-<!--   map(my_theme,my_theme_add) + -->
-<!--   theme(legend.position = "top", ##retirar legenda = '' -->
-<!--     legend.background = element_rect(fill = "transparent")) + ##? -->
-<!--   scale_fill_viridis_d(option = "plasma") + -->
-<!--   annotate("text", -->
-<!--            x=2, -->
-<!--            y=1, -->
-<!--            label = ".", -->
-<!--            size=0.1) -->
-<!--   } -->
-<!--   # geom_text(stat = 'identity', -->
-<!--   #           position = 'identity', -->
-<!--   #           size = 4, -->
-<!--   #           angle = 90, -->
-<!--   #           vjust = 2, -->
-<!--   #           data = NULL, -->
-<!--   #           label = 'emission') -->
-<!-- map(estados,my_plot_col_states) -->
-<!-- # ggsave('MG_legenda_setor_agr.png', dpi = 3000) -->
-<!-- ``` -->
-<!-- ## SUBSETORES  -->
-<!-- ### CARACTERIZANDO SUBSETORES PARA EMISSÕES DE GADO E RANKEANDO AS 5 CIDADES COM SUBSETORES DE MAIOR EMISSÃO DENTRE OS 5 ESTADOS -->
-<!-- ```{r} -->
-<!-- # my_plot_subsector_states <- function(.estados){ -->
-<!--   dados2 |> -->
-<!--   filter( -->
-<!--          year == 2022, -->
-<!--          str_detect(activity_units, 'animal'), -->
-<!--          gas == 'co2e_100yr', -->
-<!--          !source_name %in% nomes_uf, -->
-<!--          sigla_uf %in% estados) |>  -->
-<!--   group_by(city_ref, original_inventory_sector, sigla_uf) |> -->
-<!--   summarise( -->
-<!--     emission = sum(emissions_quantity, na.rm = T) -->
-<!--   ) |> -->
-<!--   # ungroup() |>  -->
-<!--   group_by(city_ref,sigla_uf) |> -->
-<!--   mutate( -->
-<!--     emission_total = sum(emission, na.rm = T) -->
-<!--   ) |> -->
-<!--   ungroup() |> -->
-<!--   mutate( -->
-<!--     city_ref = city_ref |> fct_reorder(emission_total) |> -->
-<!--       fct_lump(n = 10, w = emission_total)) |> -->
-<!--   mutate( -->
-<!--        original_inventory_sector = original_inventory_sector |> -->
-<!--          as_factor() |> -->
-<!--          fct_relevel("manure-left-on-pasture-cattle", -->
-<!--           "enteric-fermentation-cattle-feedlot", -->
-<!--           "manure-management-cattle-feedlot", -->
-<!--           "enteric-fermentation-cattle-pasture") -->
-<!--     ) |>  -->
-<!--   filter(city_ref != "Other") |> -->
-<!--   mutate( -->
-<!--       original_inventory_sector = case_when(                   -->
-<!--         original_inventory_sector == "enteric-fermentation-cattle-feedlot" ~ "FEGC", -->
-<!--         original_inventory_sector == "enteric-fermentation-cattle-pasture" ~ "FEGP", -->
-<!--         original_inventory_sector == "manure-left-on-pasture-cattle"  ~ "EP",     -->
-<!--         original_inventory_sector == "manure-management-cattle-feedlot" ~ "GEC", -->
-<!--       )) |> -->
-<!--   ggplot(aes(emission/1e6, #passar para Mega Ton -->
-<!--              city_ref, -->
-<!--              fill = original_inventory_sector)) + -->
-<!--   geom_col(col="black") + -->
-<!--   labs(x = 'Emissão (Mton)', -->
-<!--        y = 'City', -->
-<!--        fill = 'Subsetor') + -->
-<!--   theme_bw() + -->
-<!--   # map(my_theme,my_theme_add) + -->
-<!--   theme(legend.position = "top") + -->
-<!--   scale_fill_viridis_d(option = "plasma") + -->
-<!--     # facet_wrap(~city_ref,,ncol = 2) + -->
-<!--   annotate("text", -->
-<!--            x=5, -->
-<!--            y=1, -->
-<!--            label = ".", -->
-<!--            size=0.1)      -->
-<!-- # }  -->
-<!-- # map(estados,my_plot_subsector_states) -->
-<!-- # ggsave('top10.png', dpi = 2000) -->
-<!-- ``` -->
-<!-- ```{r} -->
-<!-- # dados2 |> -->
-<!-- #   filter( -->
-<!-- #     year == 2022, -->
-<!-- #     sigla_uf %in% estados, -->
-<!-- #     !source_name %in% nomes_uf, -->
-<!-- #     gas == 'co2e_100yr', -->
-<!-- #     # sector_name == 'agriculture' -->
-<!-- #     str_detect(activity_units, 'animal') -->
-<!-- #     ) |> -->
-<!-- #   select(original_inventory_sector, emissions_quantity, city_ref) |> -->
-<!-- #   group_by(city_ref, original_inventory_sector) |>    -->
-<!-- #   summarise( -->
-<!-- #     emission = sum(emissions_quantity, na.rm = T) -->
-<!-- #   ) |> -->
-<!-- #   arrange( - emission) |> -->
-<!-- #   group_by(city_ref) |> -->
-<!-- #   mutate( -->
-<!-- #     emission_total = sum(emission, na.rm = T) -->
-<!-- #   ) |> -->
-<!-- #   ungroup() |> -->
-<!-- #   mutate( -->
-<!-- #     city_ref = city_ref |> fct_reorder(emission_total) |> -->
-<!-- #       fct_lump(n = 5, w = emission_total)) |> -->
-<!-- #   filter(city_ref != "Other") |> -->
-<!-- #   ggplot(aes(emission/1e6, -->
-<!-- #              city_ref, -->
-<!-- #              fill = original_inventory_sector)) + -->
-<!-- #   geom_col(col="black") + -->
-<!-- #   labs(x = 'Emission (Mton)', -->
-<!-- #        y = 'City', -->
-<!-- #        fill = 'Subsector') + -->
-<!-- #   theme_bw() + -->
-<!-- #   map(my_theme,my_theme_add) + -->
-<!-- #   theme(legend.position = 'top') + -->
-<!-- #   scale_fill_viridis_d(option = 'plasma') -->
-<!-- ``` -->
-<!-- ## AGRUPAR POR ESTADO, EMISSÃO E SETOR -->
-<!-- ```{r} -->
-<!-- dados2 |> -->
-<!--   filter( -->
-<!--     year == 2022, -->
-<!--     sigla_uf %in% estados, -->
-<!--     !source_name %in% nomes_uf, -->
-<!--     gas == 'co2e_100yr', -->
-<!--     str_detect(activity_units, 'animal')) |>  -->
-<!--   mutate( -->
-<!--       original_inventory_sector = case_when(                   -->
-<!--         original_inventory_sector == "enteric-fermentation-cattle-feedlot" ~ "FEGC", -->
-<!--         original_inventory_sector == "enteric-fermentation-cattle-pasture" ~ "FEGP", -->
-<!--         original_inventory_sector == "manure-left-on-pasture-cattle"  ~ "EP",     -->
-<!--         original_inventory_sector == "manure-management-cattle-feedlot" ~ "GEC" -->
-<!--       )) |> -->
-<!--   select(original_inventory_sector, emissions_quantity, sigla_uf) |> -->
-<!--   group_by(sigla_uf, original_inventory_sector) |>  -->
-<!--   arrange( desc(emissions_quantity)) |> -->
-<!--   summarise(  -->
-<!--     emission = sum(emissions_quantity, na.rm = T) -->
-<!--   ) |>  -->
-<!--   mutate(emission_total = sum(emission)) |>  -->
-<!--   arrange( - emission) |> -->
-<!--   ungroup() |> -->
-<!--   mutate( -->
-<!--     sigla_uf = sigla_uf |> -->
-<!--   fct_reorder(emission_total)) |>  -->
-<!--   ggplot(aes(emission/1e6,  -->
-<!--              sigla_uf, -->
-<!--              fill = original_inventory_sector)) + -->
-<!--   geom_col(color ="black", lwd = 0.1) + -->
-<!--   xlab(bquote(Emissão~de~CO[2]~e~(Mton))) + -->
-<!--   labs(#x = 'Emissão de CO2 (Mton)', -->
-<!--        y = 'Estado', -->
-<!--        fill = 'Subsetor') + -->
-<!--   theme_bw() + -->
-<!--   map(my_theme,my_theme_add) + -->
-<!--   map(my_theme,my_theme_add) + -->
-<!--   theme(legend.position = 'top') + -->
-<!--   scale_fill_viridis_d(option = 'plasma') -->
-<!-- # ggsave('States_emission.png') -->
-<!-- ``` -->
-<!-- ## TOTAL DE EMISSÃO PARA OS ESTADOS/BR -->
-<!-- ```{r} -->
-<!-- dados2 |> -->
-<!--   filter(year == 2022, -->
-<!--          str_detect(activity_units, 'animal'),          #cattle -->
-<!--          # sector_name == 'agriculture',                 -->
-<!--          !source_name %in% nomes_uf, -->
-<!--          sigla_uf %in% estados, -->
-<!--          gas == 'co2e_100yr') |> -->
-<!--   group_by(sigla_uf) |>                  #!! group_by(iso3_country)  #to BR -->
-<!--   summarise( -->
-<!--     soma_emissao = sum(emissions_quantity) -->
-<!--     ) |> -->
-<!--   arrange(- soma_emissao) -->
-<!-- ``` -->
-<!-- ## SERIE TEMPORAL, 2015 A 2022  -->
-<!-- ```{r} -->
-<!-- dados2 |> -->
-<!--   filter( -->
-<!--     # year <= 2022, -->
-<!--     gas == 'co2e_100yr', -->
-<!--     !source_name %in% nomes_uf, -->
-<!--     str_detect(activity_units, 'animal') -->
-<!--   ) |>  # pull(sigla_uf) |> unique() -->
-<!--   group_by(year) |> -->
-<!--   summarise( -->
-<!--     soma_emissao= sum(emissions_quantity, na.rm = TRUE)/1e6 #, -->
-<!--     # media_emissao = mean(emissions_quantity, na.rm = TRUE)/1e6, -->
-<!--     # sd_emissao = sd(emissions_quantity/1e6, na.rm = TRUE) -->
-<!--   )  |>  -->
-<!--   mutate( -->
-<!--     sigla_uf = "Br" -->
-<!--   ) |>  -->
-<!--   rbind(dados2 |> -->
-<!--             filter(sigla_uf %in% estados, -->
-<!--             str_detect(activity_units, 'animal'), -->
-<!--             gas == 'co2e_100yr', -->
-<!--             !source_name %in% nomes_uf -->
-<!--           ) |> -->
-<!--           group_by(year, sigla_uf) |> -->
-<!--           summarise( -->
-<!--             soma_emissao= sum(emissions_quantity)/1e6 #, -->
-<!--             # media_emissao = mean(emissions_quantity)/1e6, -->
-<!--             # sd_emissao = sd(emissions_quantity/1e6) -->
-<!--           ) -->
-<!--   ) |> -->
-<!--   filter(sigla_uf != "Br") |> -->
-<!--   ggplot(aes(x=year,y=soma_emissao, -->
-<!--              fill=sigla_uf))+ -->
-<!--   #geom_point()+ -->
-<!--   #geom_smooth(method = 'lm')+ -->
-<!--   #ggpubr::stat_cor()+ -->
-<!--   geom_col(position = "dodge", color="black") +    #erro com position = "identity" [CIC] ; position = "dodge" [RF] -->
-<!--   theme_bw() + -->
-<!--   map(my_theme, my_theme_add) + -->
-<!--   theme( -->
-<!--     legend.text = element_text(size = rel(1.3)) -->
-<!--   ) + -->
-<!--   labs(x = 'Ano', -->
-<!--        y = 'Emissão total', -->
-<!--        fill="") + -->
-<!--   scale_fill_viridis_d() -->
-<!-- ggsave('TemporalEmissions-states.png') -->
-<!-- ``` -->
+``` r
+city_kgr_beta_emission <- city_kgr_beta |> 
+  left_join(
+    emissions_sources |>
+      filter(year == 2022,                 #%in% 2015:2022
+             sigla_uf %in% estados,
+             !source_name %in% nomes_uf,
+             str_detect(activity_units, 'animal'),
+             gas == 'co2e_100yr') |>
+      group_by(city_ref, sigla_uf)  |>
+      summarise(emissions_quantity =
+                  sum(emissions_quantity, na.rm = TRUE)) |>
+      rename(abbrev_state = sigla_uf,name_muni =city_ref) |> 
+      ungroup(),
+    by=c("name_muni","abbrev_state")
+  )
+```
+
+## CARACTERIZANDO MUNICÍPIO
+
+``` r
+cities <- citys
+
+# DADOS IBGE:
+# Quantidade de Cabeças de MS: 18433728
+# Quantidade de Cabeças de MT: 34246313
+# Quantidade de Cabeças de MG: 22993105
+# Quantidade de Cabeças de GO: 24410182
+# Quantidade de Cabeças de PA: 24791060
+
+# Quantidade de municípios de MS: 79
+# Quantidade de municípios de MT: 141
+# Quantidade de municípios de MG: 853
+# Quantidade de municípios de GO: 246
+# Quantidade de municípios de PA: 144
+
+estado <- 'GO'
+quant_head <- 24410182
+
+emissions_sources |>
+  filter(year == 2022,
+         str_detect(activity_units, 'animal'),
+         # sector_name == 'agriculture',
+         !source_name %in% nomes_uf,
+         sigla_uf == estado,
+         gas == 'co2e_100yr') |>
+  group_by(sigla_uf) |>                  #!!
+  summarise(
+    emission_total = sum(emissions_quantity)/1e6,
+    mean_head = sum(emissions_quantity)/quant_head
+    ) |>
+  arrange(- emission_total)
+```
+
+    ## # A tibble: 1 × 3
+    ##   sigla_uf emission_total mean_head
+    ##   <chr>             <dbl>     <dbl>
+    ## 1 GO                 36.9      1.51
+
+## CRIANDO TEMA GRAFICO
+
+``` r
+my_theme <- theme(
+       # axis.text.x = element_text(size = rel(1.25)),
+        axis.title.x = element_text(size = rel(1.4)),
+       # axis.text.y = element_text(size = rel(1.3)),
+        axis.title.y = element_text(size = rel(1.4)),
+        legend.text = element_text(size = rel(0.9)),
+       # legend.title = element_text(size = rel(1.7)),
+       title = element_text(face = 'bold'),
+       legend.position = "top",
+       legend.background = element_rect(fill = "#fffff0", color = "black"))
+
+my_theme_add <- function(.my_theme){
+ theme(
+       # axis.text.x = element_text(size = rel(1.25)),
+        axis.title.x = element_text(size = rel(1.4)),
+       # axis.text.y = element_text(size = rel(1.3)),
+        axis.title.y = element_text(size = rel(1.4)),
+        legend.text = element_text(size = rel(0.9)),
+       # legend.title = element_text(size = rel(1.7)),
+       title = element_text(face = 'bold'),
+       legend.position = "top",
+       legend.background = element_rect(fill = "transparent", color = "black"))
+}
+```
+
+## MAPEAR
+
+### CONTRUINDO MAPA COM CLASSES
+
+``` r
+#my_state <- "MS" ### <-
+my_plot_map <- function(.estados){
+  citys |>
+  select(abbrev_state) |>
+  filter(
+    abbrev_state == .estados) |>
+  ggplot() +
+  geom_sf(fill="white", color="black",
+          size=.15, show.legend = F) +
+  geom_point(data = emissions_sources |>
+               filter(year == 2022, #>2014 & year <2023
+                      sigla_uf == .estados,
+                      str_detect(activity_units, 'animal'),
+                      gas == 'co2e_100yr') |>
+               mutate(
+                 classe_emissao = case_when(
+                   emissions_quantity <0.1e6 ~ '< 0.1 Mton',
+                   emissions_quantity <0.4e6 ~ '< 0.4 Mton',
+                   emissions_quantity <1e6 ~ '< 1 Mton',
+                   emissions_quantity >=1e6 ~ '>= 1 Mton'
+                 )
+               ),
+             size = 1.5,
+             aes(lon,lat, col = classe_emissao)) +
+    theme_bw() +
+  theme(
+    axis.text.x = element_text(size = rel(1), color = "#222222"),
+    axis.title.x = element_text(size = rel(1.3), color = "#222222"),
+    axis.text.y = element_text(size = rel(1), color = "#222222"),
+    axis.title.y = element_text(size = rel(1.3), color = "#222222"),
+    legend.text = element_text(size = rel(1.3), color = "#222222"),
+    legend.title = element_text(size = rel(1.5)),
+    ) +
+   labs(col = 'CO'[2]~'eq emission',
+        x = 'Longitude',
+        y = 'Latitude'
+     #title = paste0("CO2e emission for", my_state),
+        # caption = 'Data Source: Climate TRACE',
+     )
+}
+
+map(estados,my_plot_map)
+```
+
+    ## [[1]]
+
+![](README_files/figure-gfm/unnamed-chunk-65-1.png)<!-- -->
+
+    ## 
+    ## [[2]]
+
+![](README_files/figure-gfm/unnamed-chunk-65-2.png)<!-- -->
+
+    ## 
+    ## [[3]]
+
+![](README_files/figure-gfm/unnamed-chunk-65-3.png)<!-- -->
+
+    ## 
+    ## [[4]]
+
+![](README_files/figure-gfm/unnamed-chunk-65-4.png)<!-- -->
+
+    ## 
+    ## [[5]]
+
+![](README_files/figure-gfm/unnamed-chunk-65-5.png)<!-- -->
+
+``` r
+# ggsave('GO.png', dpi = 3000, width = 9, height = 5.5)
+```
+
+``` r
+# estado <- "MG" ### <-
+# estados <- c("MS", "PA", "GO", "MT", "MG")
+#
+# my_plot_map_join <- function(.estados){
+#   left_join(city |> filter(abbrev_state == .estados),
+#           emissions_sources |>
+#             filter(year == 2022, #>2014 & year <2023
+#                    sigla_uf == .estados,
+#                    !source_name %in% nomes_uf,
+#                    str_detect(activity_units, 'animal'),            #filtering the four subsectors for cattle
+#                    gas == 'co2e_100yr') |>
+#             group_by(city_ref, sigla_uf)  |>
+#             summarise(emissions_quantity =
+#                         sum(emissions_quantity, na.rm = TRUE)) |>
+#             rename(name_muni = city_ref) ,
+#           by="name_muni") |>
+#   mutate(emissions_quantity = replace_na(emissions_quantity,0)) |>
+#   mutate(
+#     classe_emissao = case_when(
+#       emissions_quantity <0.1e6 ~ '< 0.1 Mton',
+#       emissions_quantity <0.4e6 ~ '< 0.4 Mton',
+#       emissions_quantity <0.7e6 ~ '< 0.7 Mton',
+#       emissions_quantity >=1 ~ '>= 1 Mton'
+#     )
+#   ) |>
+#     ggplot() +
+#     geom_sf(aes(fill=classe_emissao), color="black",
+#             size=.15, show.legend = TRUE)  +
+#     theme_bw() +
+#   theme(
+#     axis.text.x = element_text(size = rel(1), color = "#222222"),
+#     axis.title.x = element_text(size = rel(1.3), color = "#222222"),
+#     axis.text.y = element_text(size = rel(1), color = "#222222"),
+#     axis.title.y = element_text(size = rel(1.3), color = "#222222"),
+#     legend.text = element_text(size = rel(1.3), color = "#222222"),
+#     legend.title = element_text(size = rel(1.5)),
+#     ) +
+#    labs(fill = 'CO'[2]'e emission',
+#         x = 'Longitude',
+#         y = 'Latitude'
+#      #title = paste0("CO2e emission for", my_state),
+#         # caption = 'Data Source: Climate TRACE',
+#      ) +
+#     scale_fill_viridis_d()
+# }
+# map(estados,my_plot_map_join)
+
+# ggsave('MGg_col.png', dpi = 2000, width = 9, height = 5.5)
+
+
+#Gerando os mapas em uma única figura
+
+
+
+ left_join(citys |> filter(abbrev_state %in% estados),
+           emissions_sources |>
+             filter(year == 2022,                 #%in% 2015:2022
+                    sigla_uf %in% estados,
+                    !source_name %in% nomes_uf,
+                    str_detect(activity_units, 'animal'),            #filtering the four subsectors for cattle
+                    gas == 'co2e_100yr') |>
+             group_by(city_ref, sigla_uf)  |>
+             summarise(emissions_quantity =
+                         sum(emissions_quantity, na.rm = TRUE)) |>
+             rename(name_muni = city_ref),
+           by="name_muni") |>
+   mutate(emissions_quantity = replace_na(emissions_quantity, 0)) |>
+   mutate(
+     classe_emissao = case_when(
+       emissions_quantity <.1e6 ~ ' <  0,1 Mton',
+       emissions_quantity <.5e6 ~ ' <  0,5 Mton',
+       emissions_quantity < 1e6 ~ ' <  1,0 Mton',
+       emissions_quantity >=1e6 ~ '>= 1,0 Mton'
+     )
+   ) |>
+     ggplot() +
+     geom_sf(aes(fill=classe_emissao), color="black",
+             size=.05, show.legend = TRUE)  +
+   geom_sf(data=mapas_contorno1, fill="transparent", color="red", size=3, show.legend = FALSE) +
+   geom_sf(data=mapas_contorno2, fill="transparent", color="red", size=3, show.legend = FALSE) +
+   geom_sf(data=mapas_contorno3, fill="transparent", color="red", size=3, show.legend = FALSE) +
+   geom_sf(data=mapas_contorno4, fill="transparent", color="red", size=3, show.legend = FALSE) +
+   geom_sf(data=mapas_contorno5, fill="transparent", color="red", size=3, show.legend = FALSE) +
+     theme_bw() +
+   theme(
+     axis.text.x = element_text(size = rel(.9), color = "black"),
+     axis.title.x = element_text(size = rel(1.1), color = "black"),
+     axis.text.y = element_text(size = rel(.9), color = "black"),
+     axis.title.y = element_text(size = rel(1.1), color = "black"),
+     legend.text = element_text(size = rel(1), color = "black"),
+     legend.title = element_text(face = 'bold', size = rel(1.2)),
+     legend.position = c(1.29, .5)
+     ) +
+   labs(fill = 'Classe de emissão',
+         x = 'Longitude',
+         y = 'Latitude') +
+     scale_fill_viridis_d()
+```
+
+![](README_files/figure-gfm/unnamed-chunk-66-1.png)<!-- -->
+
+``` r
+ # ggsave('Maps_states_red.png')
+ ggsave('mapa_nova_classe.png')
+```
+
+## Análise de correlação
+
+``` r
+my_corrplot <- function(.estado){
+  pl<- city_kgr_beta_emission |> 
+    as_data_frame() |>
+    filter(abbrev_state == .estado) |> 
+    select(beta_sif:emissions_quantity) |> 
+    relocate(emissions_quantity) |> 
+    drop_na() |> 
+    cor(method = "spearman") |> 
+    corrplot::corrplot(method = "ellipse",type = "upper" )
+  print(pl)
+}
+map(estados,my_corrplot)
+```
+
+![](README_files/figure-gfm/unnamed-chunk-67-1.png)<!-- -->
+
+    ## $corr
+    ##                    emissions_quantity    beta_sif  beta_xch4  beta_xco2
+    ## emissions_quantity         1.00000000  0.09228143  0.1042044  0.1116891
+    ## beta_sif                   0.09228143  1.00000000  0.4444834 -0.2416790
+    ## beta_xch4                  0.10420437  0.44448337  1.0000000 -0.3589533
+    ## beta_xco2                  0.11168911 -0.24167901 -0.3589533  1.0000000
+    ## 
+    ## $corrPos
+    ##                 xName              yName x y        corr
+    ## 1  emissions_quantity emissions_quantity 1 4  1.00000000
+    ## 2            beta_sif emissions_quantity 2 4  0.09228143
+    ## 3            beta_sif           beta_sif 2 3  1.00000000
+    ## 4           beta_xch4 emissions_quantity 3 4  0.10420437
+    ## 5           beta_xch4           beta_sif 3 3  0.44448337
+    ## 6           beta_xch4          beta_xch4 3 2  1.00000000
+    ## 7           beta_xco2 emissions_quantity 4 4  0.11168911
+    ## 8           beta_xco2           beta_sif 4 3 -0.24167901
+    ## 9           beta_xco2          beta_xch4 4 2 -0.35895333
+    ## 10          beta_xco2          beta_xco2 4 1  1.00000000
+    ## 
+    ## $arg
+    ## $arg$type
+    ## [1] "upper"
+
+![](README_files/figure-gfm/unnamed-chunk-67-2.png)<!-- -->
+
+    ## $corr
+    ##                    emissions_quantity    beta_sif  beta_xch4   beta_xco2
+    ## emissions_quantity         1.00000000 -0.08791411 -0.1354180 -0.08506265
+    ## beta_sif                  -0.08791411  1.00000000  0.2824124  0.04865846
+    ## beta_xch4                 -0.13541799  0.28241237  1.0000000  0.11557149
+    ## beta_xco2                 -0.08506265  0.04865846  0.1155715  1.00000000
+    ## 
+    ## $corrPos
+    ##                 xName              yName x y        corr
+    ## 1  emissions_quantity emissions_quantity 1 4  1.00000000
+    ## 2            beta_sif emissions_quantity 2 4 -0.08791411
+    ## 3            beta_sif           beta_sif 2 3  1.00000000
+    ## 4           beta_xch4 emissions_quantity 3 4 -0.13541799
+    ## 5           beta_xch4           beta_sif 3 3  0.28241237
+    ## 6           beta_xch4          beta_xch4 3 2  1.00000000
+    ## 7           beta_xco2 emissions_quantity 4 4 -0.08506265
+    ## 8           beta_xco2           beta_sif 4 3  0.04865846
+    ## 9           beta_xco2          beta_xch4 4 2  0.11557149
+    ## 10          beta_xco2          beta_xco2 4 1  1.00000000
+    ## 
+    ## $arg
+    ## $arg$type
+    ## [1] "upper"
+
+![](README_files/figure-gfm/unnamed-chunk-67-3.png)<!-- -->
+
+    ## $corr
+    ##                    emissions_quantity    beta_sif  beta_xch4   beta_xco2
+    ## emissions_quantity          1.0000000 -0.10998852 -0.5746164  0.13324288
+    ## beta_sif                   -0.1099885  1.00000000  0.1056883  0.06848972
+    ## beta_xch4                  -0.5746164  0.10568834  1.0000000 -0.18835195
+    ## beta_xco2                   0.1332429  0.06848972 -0.1883519  1.00000000
+    ## 
+    ## $corrPos
+    ##                 xName              yName x y        corr
+    ## 1  emissions_quantity emissions_quantity 1 4  1.00000000
+    ## 2            beta_sif emissions_quantity 2 4 -0.10998852
+    ## 3            beta_sif           beta_sif 2 3  1.00000000
+    ## 4           beta_xch4 emissions_quantity 3 4 -0.57461643
+    ## 5           beta_xch4           beta_sif 3 3  0.10568834
+    ## 6           beta_xch4          beta_xch4 3 2  1.00000000
+    ## 7           beta_xco2 emissions_quantity 4 4  0.13324288
+    ## 8           beta_xco2           beta_sif 4 3  0.06848972
+    ## 9           beta_xco2          beta_xch4 4 2 -0.18835195
+    ## 10          beta_xco2          beta_xco2 4 1  1.00000000
+    ## 
+    ## $arg
+    ## $arg$type
+    ## [1] "upper"
+
+![](README_files/figure-gfm/unnamed-chunk-67-4.png)<!-- -->
+
+    ## $corr
+    ##                    emissions_quantity    beta_sif   beta_xch4   beta_xco2
+    ## emissions_quantity         1.00000000 -0.12242464 -0.15930352  0.01000652
+    ## beta_sif                  -0.12242464  1.00000000  0.04591749 -0.14554713
+    ## beta_xch4                 -0.15930352  0.04591749  1.00000000 -0.08746528
+    ## beta_xco2                  0.01000652 -0.14554713 -0.08746528  1.00000000
+    ## 
+    ## $corrPos
+    ##                 xName              yName x y        corr
+    ## 1  emissions_quantity emissions_quantity 1 4  1.00000000
+    ## 2            beta_sif emissions_quantity 2 4 -0.12242464
+    ## 3            beta_sif           beta_sif 2 3  1.00000000
+    ## 4           beta_xch4 emissions_quantity 3 4 -0.15930352
+    ## 5           beta_xch4           beta_sif 3 3  0.04591749
+    ## 6           beta_xch4          beta_xch4 3 2  1.00000000
+    ## 7           beta_xco2 emissions_quantity 4 4  0.01000652
+    ## 8           beta_xco2           beta_sif 4 3 -0.14554713
+    ## 9           beta_xco2          beta_xch4 4 2 -0.08746528
+    ## 10          beta_xco2          beta_xco2 4 1  1.00000000
+    ## 
+    ## $arg
+    ## $arg$type
+    ## [1] "upper"
+
+![](README_files/figure-gfm/unnamed-chunk-67-5.png)<!-- -->
+
+    ## $corr
+    ##                    emissions_quantity   beta_sif   beta_xch4   beta_xco2
+    ## emissions_quantity         1.00000000 -0.2509624  0.34834898 -0.04646986
+    ## beta_sif                  -0.25096240  1.0000000 -0.24474686  0.19587754
+    ## beta_xch4                  0.34834898 -0.2447469  1.00000000  0.06893047
+    ## beta_xco2                 -0.04646986  0.1958775  0.06893047  1.00000000
+    ## 
+    ## $corrPos
+    ##                 xName              yName x y        corr
+    ## 1  emissions_quantity emissions_quantity 1 4  1.00000000
+    ## 2            beta_sif emissions_quantity 2 4 -0.25096240
+    ## 3            beta_sif           beta_sif 2 3  1.00000000
+    ## 4           beta_xch4 emissions_quantity 3 4  0.34834898
+    ## 5           beta_xch4           beta_sif 3 3 -0.24474686
+    ## 6           beta_xch4          beta_xch4 3 2  1.00000000
+    ## 7           beta_xco2 emissions_quantity 4 4 -0.04646986
+    ## 8           beta_xco2           beta_sif 4 3  0.19587754
+    ## 9           beta_xco2          beta_xch4 4 2  0.06893047
+    ## 10          beta_xco2          beta_xco2 4 1  1.00000000
+    ## 
+    ## $arg
+    ## $arg$type
+    ## [1] "upper"
+
+    ## [[1]]
+    ## [[1]]$corr
+    ##                    emissions_quantity    beta_sif  beta_xch4  beta_xco2
+    ## emissions_quantity         1.00000000  0.09228143  0.1042044  0.1116891
+    ## beta_sif                   0.09228143  1.00000000  0.4444834 -0.2416790
+    ## beta_xch4                  0.10420437  0.44448337  1.0000000 -0.3589533
+    ## beta_xco2                  0.11168911 -0.24167901 -0.3589533  1.0000000
+    ## 
+    ## [[1]]$corrPos
+    ##                 xName              yName x y        corr
+    ## 1  emissions_quantity emissions_quantity 1 4  1.00000000
+    ## 2            beta_sif emissions_quantity 2 4  0.09228143
+    ## 3            beta_sif           beta_sif 2 3  1.00000000
+    ## 4           beta_xch4 emissions_quantity 3 4  0.10420437
+    ## 5           beta_xch4           beta_sif 3 3  0.44448337
+    ## 6           beta_xch4          beta_xch4 3 2  1.00000000
+    ## 7           beta_xco2 emissions_quantity 4 4  0.11168911
+    ## 8           beta_xco2           beta_sif 4 3 -0.24167901
+    ## 9           beta_xco2          beta_xch4 4 2 -0.35895333
+    ## 10          beta_xco2          beta_xco2 4 1  1.00000000
+    ## 
+    ## [[1]]$arg
+    ## [[1]]$arg$type
+    ## [1] "upper"
+    ## 
+    ## 
+    ## 
+    ## [[2]]
+    ## [[2]]$corr
+    ##                    emissions_quantity    beta_sif  beta_xch4   beta_xco2
+    ## emissions_quantity         1.00000000 -0.08791411 -0.1354180 -0.08506265
+    ## beta_sif                  -0.08791411  1.00000000  0.2824124  0.04865846
+    ## beta_xch4                 -0.13541799  0.28241237  1.0000000  0.11557149
+    ## beta_xco2                 -0.08506265  0.04865846  0.1155715  1.00000000
+    ## 
+    ## [[2]]$corrPos
+    ##                 xName              yName x y        corr
+    ## 1  emissions_quantity emissions_quantity 1 4  1.00000000
+    ## 2            beta_sif emissions_quantity 2 4 -0.08791411
+    ## 3            beta_sif           beta_sif 2 3  1.00000000
+    ## 4           beta_xch4 emissions_quantity 3 4 -0.13541799
+    ## 5           beta_xch4           beta_sif 3 3  0.28241237
+    ## 6           beta_xch4          beta_xch4 3 2  1.00000000
+    ## 7           beta_xco2 emissions_quantity 4 4 -0.08506265
+    ## 8           beta_xco2           beta_sif 4 3  0.04865846
+    ## 9           beta_xco2          beta_xch4 4 2  0.11557149
+    ## 10          beta_xco2          beta_xco2 4 1  1.00000000
+    ## 
+    ## [[2]]$arg
+    ## [[2]]$arg$type
+    ## [1] "upper"
+    ## 
+    ## 
+    ## 
+    ## [[3]]
+    ## [[3]]$corr
+    ##                    emissions_quantity    beta_sif  beta_xch4   beta_xco2
+    ## emissions_quantity          1.0000000 -0.10998852 -0.5746164  0.13324288
+    ## beta_sif                   -0.1099885  1.00000000  0.1056883  0.06848972
+    ## beta_xch4                  -0.5746164  0.10568834  1.0000000 -0.18835195
+    ## beta_xco2                   0.1332429  0.06848972 -0.1883519  1.00000000
+    ## 
+    ## [[3]]$corrPos
+    ##                 xName              yName x y        corr
+    ## 1  emissions_quantity emissions_quantity 1 4  1.00000000
+    ## 2            beta_sif emissions_quantity 2 4 -0.10998852
+    ## 3            beta_sif           beta_sif 2 3  1.00000000
+    ## 4           beta_xch4 emissions_quantity 3 4 -0.57461643
+    ## 5           beta_xch4           beta_sif 3 3  0.10568834
+    ## 6           beta_xch4          beta_xch4 3 2  1.00000000
+    ## 7           beta_xco2 emissions_quantity 4 4  0.13324288
+    ## 8           beta_xco2           beta_sif 4 3  0.06848972
+    ## 9           beta_xco2          beta_xch4 4 2 -0.18835195
+    ## 10          beta_xco2          beta_xco2 4 1  1.00000000
+    ## 
+    ## [[3]]$arg
+    ## [[3]]$arg$type
+    ## [1] "upper"
+    ## 
+    ## 
+    ## 
+    ## [[4]]
+    ## [[4]]$corr
+    ##                    emissions_quantity    beta_sif   beta_xch4   beta_xco2
+    ## emissions_quantity         1.00000000 -0.12242464 -0.15930352  0.01000652
+    ## beta_sif                  -0.12242464  1.00000000  0.04591749 -0.14554713
+    ## beta_xch4                 -0.15930352  0.04591749  1.00000000 -0.08746528
+    ## beta_xco2                  0.01000652 -0.14554713 -0.08746528  1.00000000
+    ## 
+    ## [[4]]$corrPos
+    ##                 xName              yName x y        corr
+    ## 1  emissions_quantity emissions_quantity 1 4  1.00000000
+    ## 2            beta_sif emissions_quantity 2 4 -0.12242464
+    ## 3            beta_sif           beta_sif 2 3  1.00000000
+    ## 4           beta_xch4 emissions_quantity 3 4 -0.15930352
+    ## 5           beta_xch4           beta_sif 3 3  0.04591749
+    ## 6           beta_xch4          beta_xch4 3 2  1.00000000
+    ## 7           beta_xco2 emissions_quantity 4 4  0.01000652
+    ## 8           beta_xco2           beta_sif 4 3 -0.14554713
+    ## 9           beta_xco2          beta_xch4 4 2 -0.08746528
+    ## 10          beta_xco2          beta_xco2 4 1  1.00000000
+    ## 
+    ## [[4]]$arg
+    ## [[4]]$arg$type
+    ## [1] "upper"
+    ## 
+    ## 
+    ## 
+    ## [[5]]
+    ## [[5]]$corr
+    ##                    emissions_quantity   beta_sif   beta_xch4   beta_xco2
+    ## emissions_quantity         1.00000000 -0.2509624  0.34834898 -0.04646986
+    ## beta_sif                  -0.25096240  1.0000000 -0.24474686  0.19587754
+    ## beta_xch4                  0.34834898 -0.2447469  1.00000000  0.06893047
+    ## beta_xco2                 -0.04646986  0.1958775  0.06893047  1.00000000
+    ## 
+    ## [[5]]$corrPos
+    ##                 xName              yName x y        corr
+    ## 1  emissions_quantity emissions_quantity 1 4  1.00000000
+    ## 2            beta_sif emissions_quantity 2 4 -0.25096240
+    ## 3            beta_sif           beta_sif 2 3  1.00000000
+    ## 4           beta_xch4 emissions_quantity 3 4  0.34834898
+    ## 5           beta_xch4           beta_sif 3 3 -0.24474686
+    ## 6           beta_xch4          beta_xch4 3 2  1.00000000
+    ## 7           beta_xco2 emissions_quantity 4 4 -0.04646986
+    ## 8           beta_xco2           beta_sif 4 3  0.19587754
+    ## 9           beta_xco2          beta_xch4 4 2  0.06893047
+    ## 10          beta_xco2          beta_xco2 4 1  1.00000000
+    ## 
+    ## [[5]]$arg
+    ## [[5]]$arg$type
+    ## [1] "upper"
+
+### Verificando maiores cidades emissoras
+
+``` r
+# Only for analysis
+
+emissions_sources |>
+  #glimpse() |>
+  #select(sigla_uf, emissions_quantity, city_ref, gas, activity_units, sector_name, sub_sector) |>
+  filter(sigla_uf == "PA",
+         gas == 'co2e_100yr',
+         year == 2015,
+         sector_name == 'agriculture',
+         !source_name %in% nomes_uf,
+         # !sub_sector %in% c("forest-land-clearing",
+         #                    "forest-land-degradation",
+         #                    "shrubgrass-fires",
+         #                    "forest-land-fires",
+         #                    "wetland-fires",
+         #                    "removals"),
+         # str_detect(activity_units, 'animal'),
+         # sub_sector == 'enteric-fermentation-cattle-pasture',
+                         # 'manure-left-on-pasture-cattle'),
+         city_ref == 'São Félix Do Xingu'                       #change the municipality here
+          ) #|>
+```
+
+    ## # A tibble: 3 × 32
+    ##   source_id source_name        source_type iso3_country original_inventory_sec…¹
+    ##       <int> <chr>              <chr>       <chr>        <chr>                   
+    ## 1  10844136 São Félix do Xingu <NA>        BRA          cropland-fires          
+    ## 2  21122398 São Félix do Xingu <NA>        BRA          enteric-fermentation-ca…
+    ## 3  20395095 São Félix do Xingu <NA>        BRA          manure-left-on-pasture-…
+    ## # ℹ abbreviated name: ¹​original_inventory_sector
+    ## # ℹ 27 more variables: start_time <date>, end_time <date>, lat <dbl>,
+    ## #   lon <dbl>, geometry_ref <chr>, gas <chr>, emissions_quantity <dbl>,
+    ## #   temporal_granularity <chr>, created_date <date>, modified_date <date>,
+    ## #   directory <chr>, activity <dbl>, activity_units <chr>,
+    ## #   emissions_factor <dbl>, emissions_factor_units <chr>, capacity <dbl>,
+    ## #   capacity_units <chr>, capacity_factor <dbl>, year <dbl>, …
+
+``` r
+  # group_by(sub_sector, sector_name) |>
+  # summarise(
+  #    emission = sum(emissions_quantity, na.rm = T)
+  #  )
+```
+
+## VISUALIZANDO MAIORES EMISSORES PARA O SETOR DE AGRICULTURA OU P/ ANIMAL
+
+``` r
+emissions_sources |>
+  filter(
+    year == 2022,                   #%in% 2015:2022
+    sigla_uf %in% estados, # <-----
+    str_detect(activity_units, 'animal'),
+    # sector_name == 'agriculture',
+    !source_name %in% nomes_uf,
+    gas == 'co2e_100yr'
+    ) |>
+  group_by(city_ref, sigla_uf, sub_sector) |>
+  summarise(
+    emission = sum(emissions_quantity, na.rm = T)
+  ) |>
+  group_by(city_ref,sigla_uf) |>
+  mutate(
+    emission_total = sum(emission, na.rm = T)
+  ) |>
+  ungroup() |>
+  group_by(sigla_uf) |>
+  mutate(
+    city_ref = city_ref |> fct_reorder(emission_total) |>
+      fct_lump(n = 3, w = emission_total)) |>
+  filter(city_ref != "Other") |>
+  mutate(
+      sub_sector = case_when(
+        sub_sector == "enteric-fermentation-cattle-feedlot" ~ "FEGC",
+        sub_sector == "enteric-fermentation-cattle-pasture" ~ "FEGP",
+        sub_sector == "manure-left-on-pasture-cattle"  ~ "EP",
+        sub_sector == "manure-management-cattle-feedlot" ~ "GEC",
+        sub_sector == 'cropland-fires' ~ 'CF',
+        sub_sector == 'synthetic-fertilizer-application' ~ 'SF application'
+      )) |>
+  ggplot(aes(emission/1e6, #passar de ton para Mton
+             city_ref,
+             fill = sub_sector)) +
+  geom_col(col="black", lwd = 0.1) +
+  xlab(bquote(Emissião~CO[2]~e~(Mton))) +
+  labs(#x = 'Emission (Mton)',
+       y = 'Cidade',
+       fill = 'Subsetor') +
+  theme_bw() +
+  theme(
+    axis.text.x = element_text(size = rel(1)),
+    # axis.title.x = element_text(size = rel(2)),
+    axis.text.y = element_text(size = rel(1.3)),
+    # axis.title.y = element_text(size = rel(2)),
+    legend.text = element_text(size = rel(1)),
+    #legend.title = element_text(size = rel(1.7)),
+    title = element_text(face = 'bold'),
+    legend.position = 'top',
+    legend.background = element_rect(fill = "transparent", color = "black")) +
+      scale_fill_viridis_d(option ='plasma') +
+  facet_wrap(~sigla_uf,scales = "free",ncol = 2) +
+  annotate("text",
+           x=2,
+           y=1,
+           label = ".",
+           size=0.1)
+```
+
+![](README_files/figure-gfm/unnamed-chunk-69-1.png)<!-- -->
+
+``` r
+ggsave('top3cidades_emissão_states.png')
+```
+
+``` r
+# Only for exemplification in the report
+
+estado <- 'MG'
+
+my_plot_col_states <- function(.estados){
+  emissions_sources |>
+  filter(
+    year == 2022,
+    sigla_uf == .estados,
+    !source_name %in% nomes_uf,
+    #str_detect(activity_units, 'animal'),
+    sector_name == 'agriculture',
+    gas == 'co2e_100yr'
+    ) |>
+  group_by(city_ref, sub_sector) |>
+  summarise(
+    emission = sum(emissions_quantity, na.rm = T)
+  ) |>
+  group_by(city_ref) |>
+  mutate(
+    emission_total = sum(emission, na.rm = T)
+  ) |>
+  ungroup() |>
+  mutate(
+    city_ref = city_ref |> fct_reorder(emission_total) |>
+      fct_lump(n = 5, w = emission_total)) |>
+  filter(city_ref != "Other") |>
+    mutate(
+      sub_sector = case_when(
+        sub_sector == "cropland-fires"  ~ "Cropland fires",
+        sub_sector == "enteric-fermentation-cattle-feedlot" ~ "EFC feedlot",
+        sub_sector == "enteric-fermentation-cattle-pasture" ~ "EFC pasture",
+        sub_sector == "manure-left-on-pasture-cattle"  ~ "ML pasture cattle",
+        sub_sector == "manure-management-cattle-feedlot" ~ "MMC feedlot",
+        sub_sector == "rice-cultivation" ~ "rice cultivation",
+        sub_sector == "synthetic-fertilizer-application" ~ "SF application",
+      )
+    ) |>
+  ggplot(aes(emission/1e6,
+             city_ref,
+             fill = sub_sector)) +
+  geom_col(col="black", lwd = 0.1) +
+    xlab(bquote(Emission~CO[2]~e~(Mton))) +
+  labs(#x = 'Emission (Mton)',
+       y = 'City',
+       fill = '') +
+  theme_bw() +
+  map(my_theme,my_theme_add) +
+  theme(legend.position = "top", ##retirar legenda = ''
+    legend.background = element_rect(fill = "transparent")) + ##?
+  scale_fill_viridis_d(option = "plasma") +
+  annotate("text",
+           x=2,
+           y=1,
+           label = ".",
+           size=0.1)
+  }
+  # geom_text(stat = 'identity',
+  #           position = 'identity',
+  #           size = 4,
+  #           angle = 90,
+  #           vjust = 2,
+  #           data = NULL,
+  #           label = 'emission')
+
+map(estados,my_plot_col_states)
+```
+
+    ## [[1]]
+
+![](README_files/figure-gfm/unnamed-chunk-70-1.png)<!-- -->
+
+    ## 
+    ## [[2]]
+
+![](README_files/figure-gfm/unnamed-chunk-70-2.png)<!-- -->
+
+    ## 
+    ## [[3]]
+
+![](README_files/figure-gfm/unnamed-chunk-70-3.png)<!-- -->
+
+    ## 
+    ## [[4]]
+
+![](README_files/figure-gfm/unnamed-chunk-70-4.png)<!-- -->
+
+    ## 
+    ## [[5]]
+
+![](README_files/figure-gfm/unnamed-chunk-70-5.png)<!-- -->
+
+``` r
+# ggsave('MG_legenda_setor_agr.png', dpi = 3000)
+```
+
+## SUBSETORES
+
+### CARACTERIZANDO SUBSETORES PARA EMISSÕES DE GADO E RANKEANDO AS 5 CIDADES COM SUBSETORES DE MAIOR EMISSÃO DENTRE OS 5 ESTADOS
+
+``` r
+# my_plot_subsector_states <- function(.estados){
+  emissions_sources |>
+  filter(
+         year == 2022,
+         str_detect(activity_units, 'animal'),
+         gas == 'co2e_100yr',
+         !source_name %in% nomes_uf,
+         sigla_uf %in% estados) |>
+  group_by(city_ref, original_inventory_sector, sigla_uf) |>
+  summarise(
+    emission = sum(emissions_quantity, na.rm = T)
+  ) |>
+  # ungroup() |>
+  group_by(city_ref,sigla_uf) |>
+  mutate(
+    emission_total = sum(emission, na.rm = T)
+  ) |>
+  ungroup() |>
+  mutate(
+    city_ref = city_ref |> fct_reorder(emission_total) |>
+      fct_lump(n = 10, w = emission_total)) |>
+  mutate(
+       original_inventory_sector = original_inventory_sector |>
+         as_factor() |>
+         fct_relevel("manure-left-on-pasture-cattle",
+          "enteric-fermentation-cattle-feedlot",
+          "manure-management-cattle-feedlot",
+          "enteric-fermentation-cattle-pasture")
+    ) |>
+  filter(city_ref != "Other") |>
+  mutate(
+      original_inventory_sector = case_when(
+        original_inventory_sector == "enteric-fermentation-cattle-feedlot" ~ "FEGC",
+        original_inventory_sector == "enteric-fermentation-cattle-pasture" ~ "FEGP",
+        original_inventory_sector == "manure-left-on-pasture-cattle"  ~ "EP",
+        original_inventory_sector == "manure-management-cattle-feedlot" ~ "GEC",
+      )) |>
+  ggplot(aes(emission/1e6, #passar para Mega Ton
+             city_ref,
+             fill = original_inventory_sector)) +
+  geom_col(col="black") +
+  labs(x = 'Emissão (Mton)',
+       y = 'City',
+       fill = 'Subsetor') +
+  theme_bw() +
+  # map(my_theme,my_theme_add) +
+  theme(legend.position = "top") +
+  scale_fill_viridis_d(option = "plasma") +
+    # facet_wrap(~city_ref,,ncol = 2) +
+  annotate("text",
+           x=5,
+           y=1,
+           label = ".",
+           size=0.1)
+```
+
+![](README_files/figure-gfm/unnamed-chunk-71-1.png)<!-- -->
+
+``` r
+# }
+
+# map(estados,my_plot_subsector_states)
+
+# ggsave('top10.png', dpi = 2000)
+```
+
+``` r
+# emissions_sources |>
+#   filter(
+#     year == 2022,
+#     sigla_uf %in% estados,
+#     !source_name %in% nomes_uf,
+#     gas == 'co2e_100yr',
+#     # sector_name == 'agriculture'
+#     str_detect(activity_units, 'animal')
+#     ) |>
+#   select(original_inventory_sector, emissions_quantity, city_ref) |>
+#   group_by(city_ref, original_inventory_sector) |>
+#   summarise(
+#     emission = sum(emissions_quantity, na.rm = T)
+#   ) |>
+#   arrange( - emission) |>
+#   group_by(city_ref) |>
+#   mutate(
+#     emission_total = sum(emission, na.rm = T)
+#   ) |>
+#   ungroup() |>
+#   mutate(
+#     city_ref = city_ref |> fct_reorder(emission_total) |>
+#       fct_lump(n = 5, w = emission_total)) |>
+#   filter(city_ref != "Other") |>
+#   ggplot(aes(emission/1e6,
+#              city_ref,
+#              fill = original_inventory_sector)) +
+#   geom_col(col="black") +
+#   labs(x = 'Emission (Mton)',
+#        y = 'City',
+#        fill = 'Subsector') +
+#   theme_bw() +
+#   map(my_theme,my_theme_add) +
+#   theme(legend.position = 'top') +
+#   scale_fill_viridis_d(option = 'plasma')
+```
+
+## AGRUPAR POR ESTADO, EMISSÃO E SETOR
+
+``` r
+emissions_sources |>
+  filter(
+    year == 2022,
+    sigla_uf %in% estados,
+    !source_name %in% nomes_uf,
+    gas == 'co2e_100yr',
+    str_detect(activity_units, 'animal')) |>
+  mutate(
+      original_inventory_sector = case_when(
+        original_inventory_sector == "enteric-fermentation-cattle-feedlot" ~ "FEGC",
+        original_inventory_sector == "enteric-fermentation-cattle-pasture" ~ "FEGP",
+        original_inventory_sector == "manure-left-on-pasture-cattle"  ~ "EP",
+        original_inventory_sector == "manure-management-cattle-feedlot" ~ "GEC"
+      )) |>
+  select(original_inventory_sector, emissions_quantity, sigla_uf) |>
+  group_by(sigla_uf, original_inventory_sector) |>
+  arrange( desc(emissions_quantity)) |>
+  summarise(
+    emission = sum(emissions_quantity, na.rm = T)
+  ) |>
+  mutate(emission_total = sum(emission)) |>
+  arrange( - emission) |>
+  ungroup() |>
+  mutate(
+    sigla_uf = sigla_uf |>
+  fct_reorder(emission_total)) |>
+  ggplot(aes(emission/1e6,
+             sigla_uf,
+             fill = original_inventory_sector)) +
+  geom_col(color ="black", lwd = 0.1) +
+  xlab(bquote(Emissão~de~CO[2]~e~(Mton))) +
+  labs(#x = 'Emissão de CO2 (Mton)',
+       y = 'Estado',
+       fill = 'Subsetor') +
+  theme_bw() +
+  map(my_theme,my_theme_add) +
+  map(my_theme,my_theme_add) +
+  theme(legend.position = 'top') +
+  scale_fill_viridis_d(option = 'plasma')
+```
+
+![](README_files/figure-gfm/unnamed-chunk-73-1.png)<!-- -->
+
+``` r
+# ggsave('States_emission.png')
+```
+
+## TOTAL DE EMISSÃO PARA OS ESTADOS/BR
+
+``` r
+emissions_sources |>
+  filter(year == 2022,
+         str_detect(activity_units, 'animal'),          #cattle
+         # sector_name == 'agriculture',
+         !source_name %in% nomes_uf,
+         sigla_uf %in% estados,
+         gas == 'co2e_100yr') |>
+  group_by(sigla_uf) |>                  #!! group_by(iso3_country)  #to BR
+  summarise(
+    soma_emissao = sum(emissions_quantity)
+    ) |>
+  arrange(- soma_emissao)
+```
+
+    ## # A tibble: 5 × 2
+    ##   sigla_uf soma_emissao
+    ##   <chr>           <dbl>
+    ## 1 MG          48937939.
+    ## 2 MS          43469987.
+    ## 3 MT          40816950.
+    ## 4 GO          36888763.
+    ## 5 PA          13610501.
+
+## SERIE TEMPORAL, 2015 A 2022
+
+``` r
+emissions_sources |>
+  filter(
+    # year <= 2022,
+    gas == 'co2e_100yr',
+    !source_name %in% nomes_uf,
+    str_detect(activity_units, 'animal')
+  ) |>  # pull(sigla_uf) |> unique()
+  group_by(year) |>
+  summarise(
+    soma_emissao= sum(emissions_quantity, na.rm = TRUE)/1e6 #,
+    # media_emissao = mean(emissions_quantity, na.rm = TRUE)/1e6,
+    # sd_emissao = sd(emissions_quantity/1e6, na.rm = TRUE)
+  )  |>
+  mutate(
+    sigla_uf = "Br"
+  ) |>
+  rbind(emissions_sources |>
+            filter(sigla_uf %in% estados,
+            str_detect(activity_units, 'animal'),
+            gas == 'co2e_100yr',
+            !source_name %in% nomes_uf
+          ) |>
+          group_by(year, sigla_uf) |>
+          summarise(
+            soma_emissao= sum(emissions_quantity)/1e6 #,
+            # media_emissao = mean(emissions_quantity)/1e6,
+            # sd_emissao = sd(emissions_quantity/1e6)
+          )
+  ) |>
+  filter(sigla_uf != "Br") |>
+  ggplot(aes(x=year,y=soma_emissao,
+             fill=sigla_uf))+
+  #geom_point()+
+  #geom_smooth(method = 'lm')+
+  #ggpubr::stat_cor()+
+  geom_col(position = "dodge", color="black") +    #erro com position = "identity" [CIC] ; position = "dodge" [RF]
+  theme_bw() +
+  map(my_theme, my_theme_add) +
+  theme(
+    legend.text = element_text(size = rel(1.3))
+  ) +
+  labs(x = 'Ano',
+       y = 'Emissão total',
+       fill="") +
+  scale_fill_viridis_d()
+```
+
+![](README_files/figure-gfm/unnamed-chunk-75-1.png)<!-- -->
+
+``` r
+ggsave('TemporalEmissions-states.png')
+```

@@ -350,3 +350,8 @@ get_tif <- function(file){
 #   }
 # }
 
+mapas_contorno1 <- read_state(code_state="MS")
+mapas_contorno2 <- read_state(code_state="MT")
+mapas_contorno3 <- read_state(code_state="MG")
+mapas_contorno4 <- read_state(code_state="PA")
+mapas_contorno5 <- read_state(code_state="GO")
