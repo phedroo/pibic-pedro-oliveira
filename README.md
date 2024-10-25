@@ -536,36 +536,28 @@ dev.off()
 ### Passo 6 - Krigagem Ordinária - interpolação em locais não amostrados
 
 ``` r
-ko_variavel <- gstat::krige(formula=form, data_set_aux, grid, model=modelo,
-                     block=c(0.1,0.1),
-                     nsim=0,
-                     na.action=na.pass,
-                     debug.level=-1
-)
+# ko_variavel <- gstat::krige(formula=form, data_set_aux, grid, model=modelo,
+#                      block=c(0.1,0.1),
+#                      nsim=0,
+#                      na.action=na.pass,
+#                      debug.level=-1
+# )
 ```
-
-    ## [using ordinary kriging]
-    ##   0% done  1% done  2% done  3% done  4% done  5% done  6% done  7% done  8% done  9% done 10% done 11% done 12% done 13% done 14% done 15% done 16% done 17% done 18% done 19% done 20% done 21% done 22% done 23% done 24% done 25% done 26% done 27% done 28% done 29% done 30% done 31% done 32% done 33% done 34% done 35% done 36% done 37% done 38% done 39% done 40% done 42% done 45% done 47% done 50% done 52% done 55% done 57% done 60% done 62% done 65% done 67% done 69% done 72% done 74% done 77% done 80% done 82% done 85% done 87% done 90% done 92% done 95% done 97% done 99% done100% done
 
 ## Passo 7 Visualização dos padrões espaciais e armazenamento dos dados e imagem.
 
 ``` r
-mapa <- as.tibble(ko_variavel) |>
-  ggplot(aes(x=X, y=Y)) +
-  geom_tile(aes(fill = var1.pred)) +
-  scale_fill_viridis_c() +
-  coord_equal() +
-  labs(x="Longitude",
-       y="Latitude",
-       fill="xco2") +
-  theme_bw()
-mapa
-```
-
-![](README_files/figure-gfm/unnamed-chunk-18-1.png)<!-- -->
-
-``` r
-ggsave(paste0("output/maps-kgr/kgr-xco2-",my_state,"-",my_year,".png"), plot = mapa, width = 10, height = 8, dpi = 300)
+# mapa <- as.tibble(ko_variavel) |>
+#   ggplot(aes(x=X, y=Y)) +
+#   geom_tile(aes(fill = var1.pred)) +
+#   scale_fill_viridis_c() +
+#   coord_equal() +
+#   labs(x="Longitude",
+#        y="Latitude",
+#        fill="xco2") +
+#   theme_bw()
+# mapa
+# ggsave(paste0("output/maps-kgr/kgr-xco2-",my_state,"-",my_year,".png"), plot = mapa, width = 10, height = 8, dpi = 300)
 # df <- ko_variavel |>
 #   as.tibble() |>
 #   mutate(var1.var = sqrt(var1.var)) 
@@ -696,7 +688,7 @@ data_set_me |>
 ### PASSO 1
 
 ``` r
-my_year = 2018
+my_year = 2020
 my_state = "PA"
 # Criar o adensamento de pontos
 x<-data_set_me$longitude
@@ -787,7 +779,7 @@ form <- xch4 ~ 1
 vari_exp <- gstat::variogram(form, data = data_set_aux,
                       cressie = FALSE,
                       cutoff = 8, # distância máxima do semivariograma
-                      width = .05) # distancia entre pontos
+                      width = .7) # distancia entre pontos
 vari_exp  |>
   ggplot(aes(x=dist, y=gamma)) +
   geom_point() +
@@ -1080,40 +1072,32 @@ dev.off()
 ### Passo 6 - Krigagem Ordinária - interpolação em locais não amostrados
 
 ``` r
-ko_variavel <- gstat::krige(formula=form, data_set_aux, grid, model=modelo,
-                     block=c(0.1,0.1),
-                     nsim=0,
-                     na.action=na.pass,
-                     debug.level=-1
-)
+# ko_variavel <- gstat::krige(formula=form, data_set_aux, grid, model=modelo,
+#                      block=c(0.1,0.1),
+#                      nsim=0,
+#                      na.action=na.pass,
+#                      debug.level=-1
+# )
 ```
-
-    ## [using ordinary kriging]
-    ##   0% done  1% done  2% done  3% done  4% done  5% done  6% done  7% done  8% done  9% done 10% done 11% done 12% done 13% done 14% done 15% done 16% done 17% done 18% done 19% done 20% done 21% done 22% done 23% done 24% done 25% done 26% done 27% done 28% done 29% done 30% done 31% done 32% done 33% done 34% done 35% done 36% done 37% done 38% done 39% done 40% done 41% done 42% done 43% done 44% done 45% done 46% done 47% done 48% done 49% done 50% done 51% done 52% done 53% done 54% done 55% done 56% done 57% done 58% done 59% done 60% done 62% done 65% done 67% done 70% done 73% done 75% done 78% done 80% done 83% done 86% done 89% done 91% done 94% done 97% done 99% done100% done
 
 ## Passo 7 Visualização dos padrões espaciais e armazenamento dos dados e imagem.
 
 ``` r
-mapa <- as.tibble(ko_variavel) |>
-  ggplot(aes(x=X, y=Y)) +
-  geom_tile(aes(fill = var1.pred)) +
-  scale_fill_viridis_c() +
-  coord_equal() +
-  labs(x="Longitude",
-       y="Latitude",
-       fill="xch4") +
-  theme_bw()
-mapa
-```
-
-![](README_files/figure-gfm/unnamed-chunk-34-1.png)<!-- -->
-
-``` r
-ggsave(paste0("output/maps-kgr/kgr-xch4-",my_state,"-",my_year,".png"), plot = mapa, width = 10, height = 8, dpi = 300)
-df <- ko_variavel |>
-  as.tibble() |>
-  mutate(var1.var = sqrt(var1.var)) 
-write_rds(df,paste0("output/maps-kgr/kgr-xch4-",my_state,"-",my_year,".rds"))
+# mapa <- as.tibble(ko_variavel) |>
+#   ggplot(aes(x=X, y=Y)) +
+#   geom_tile(aes(fill = var1.pred)) +
+#   scale_fill_viridis_c() +
+#   coord_equal() +
+#   labs(x="Longitude",
+#        y="Latitude",
+#        fill="xch4") +
+#   theme_bw()
+# mapa
+# ggsave(paste0("output/maps-kgr/kgr-xch4-",my_state,"-",my_year,".png"), plot = mapa, width = 10, height = 8, dpi = 300)
+# df <- ko_variavel |>
+#   as.tibble() |>
+#   mutate(var1.var = sqrt(var1.var)) 
+# write_rds(df,paste0("output/maps-kgr/kgr-xch4-",my_state,"-",my_year,".rds"))
 ```
 
 # Análise para SIF
@@ -1361,9 +1345,9 @@ form <- sif ~ 1
 # Criando o Semivariograma Experimental.
 vari_exp <- gstat::variogram(form, data = data_set_aux,
                       cressie = FALSE,
-                      cutoff = 10, # distância máxima do semivariograma
-                      width = 0.5,
-                      cloud = FALSE) # distancia entre pontos
+                      cutoff = 6, # distância máxima do semivariograma
+                      width = 0.02,
+                      cloud = FALSE) # distancia entre ponts
 vari_exp  |>
   ggplot(aes(x=dist, y=gamma)) +
   geom_point() +
@@ -1502,7 +1486,7 @@ for(j in 1:3){
 ### Passo 5 - Selecionado o melhor modelo, vamos guardá-lo
 
 ``` r
-modelo <- modelo_2 ## sempre modificar
+modelo <- modelo_3 ## sempre modificar
 # Salvando os parâmetros dos melhores modelo
 model <- modelo |> slice(2) |> pull(model)
 rss <- round(attr(modelo, "SSErr"),4) 
@@ -1536,93 +1520,105 @@ dev.off()
 ### Passo 6 - Krigagem Ordinária - interpolação em locais não amostrados
 
 ``` r
-ko_variavel <- gstat::krige(formula=form, data_set_aux, grid, model=modelo,
-                     block=c(0.1,0.1),
-                     nsim=0,
-                     na.action=na.pass,
-                     debug.level=-1
-)
+# ko_variavel <- gstat::krige(formula=form, data_set_aux, grid, model=modelo,
+#                      block=c(0.1,0.1),
+#                      nsim=0,
+#                      na.action=na.pass,
+#                      debug.level=-1
+# )
 ```
-
-    ## [using ordinary kriging]
-    ##   8% done 15% done 23% done 30% done 38% done 45% done 53% done 60% done 68% done 75% done 83% done 90% done 98% done100% done
 
 ## Passo 7 Visualização dos padrões espaciais e armazenamento dos dados e imagem.
 
 ``` r
-mapa <- as.tibble(ko_variavel) |>
-  ggplot(aes(x=X, y=Y)) +
-  geom_tile(aes(fill = var1.pred)) +
-  scale_fill_viridis_c() +
-  coord_equal() +
-  labs(x="Longitude",
-       y="Latitude",
-       fill="sif") +
-  theme_bw()
-mapa
+# mapa <- as.tibble(ko_variavel) |>
+#   ggplot(aes(x=X, y=Y)) +
+#   geom_tile(aes(fill = var1.pred)) +
+#   scale_fill_viridis_c() +
+#   coord_equal() +
+#   labs(x="Longitude",
+#        y="Latitude",
+#        fill="sif") +
+#   theme_bw()
+# mapa
+# ggsave(paste0("output/maps-kgr/kgr-sif-",my_state,"-",my_year,".png"), plot = mapa, width = 10, height = 8, dpi = 300)
+# df <- ko_variavel |>
+#   as.tibble() |>
+#   mutate(var1.var = sqrt(var1.var)) 
+# write_rds(df,paste0("output/maps-kgr/kgr-sif-",my_state,"-",my_year,".rds"))
 ```
 
-![](README_files/figure-gfm/unnamed-chunk-50-1.png)<!-- -->
+# Compilando os mapas krigados.
+
+### Rodar somente após todos os mapas gerados
 
 ``` r
-ggsave(paste0("output/maps-kgr/kgr-sif-",my_state,"-",my_year,".png"), plot = mapa, width = 10, height = 8, dpi = 300)
-df <- ko_variavel |>
-  as.tibble() |>
-  mutate(var1.var = sqrt(var1.var)) 
-write_rds(df,paste0("output/maps-kgr/kgr-sif-",my_state,"-",my_year,".rds"))
+# list_rds <- list.files("output/maps-kgr/",
+#            pattern = ".rds",
+#            full.names = TRUE)
+# kgr_maps <- map_df(list_rds, rds_reader)
+# 
+# kgr_maps_group <- kgr_maps |>
+#   group_by(variable, state, X, Y) |>
+#   summarise(
+#     n = n()
+#   ) |> select(-n)
+# 
+# kgr_maps |>
+#   group_by(variable, state) |> 
+#   summarise(
+#     n = n()
+#   )
 ```
 
-<!-- # Compilando os mapas krigados. -->
-<!-- ### Rodar somente após todos os mapas gerados -->
-<!-- ```{r} -->
-<!-- list_rds <- list.files("output/maps-kgr/", -->
-<!--            pattern = ".rds", -->
-<!--            full.names = TRUE) -->
-<!-- kgr_maps <- map_df(list_rds, rds_reader) -->
-<!-- kgr_maps_group <- kgr_maps |>  -->
-<!--   group_by(variable, state, X, Y) |>  -->
-<!--   summarise( -->
-<!--     n = n() -->
-<!--   ) |> select(-n) -->
-<!-- # state <- kgr_maps_group |> pull(state) -->
-<!-- # x <- kgr_maps_group |> pull(X) -->
-<!-- # y <- kgr_maps_group |> pull(Y) -->
-<!-- # v_city <- 0 -->
-<!-- # for(i in 1:nrow(kgr_maps_group)){ -->
-<!-- #   obj <- citys |>  -->
-<!-- #     filter(abbrev_state == state[i]) -->
-<!-- #   name_muni <- citys |>  -->
-<!-- #     filter(abbrev_state == state[i]) |>  -->
-<!-- #     pull(name_muni) -->
-<!-- #   vlg <- FALSE -->
-<!-- #   for(j in seq_along(name_muni)){ -->
-<!-- #     pol <- obj$geom |> pluck(j) |> as.matrix() -->
-<!-- #     lgv <- def_pol(x[i],y[i],pol) -->
-<!-- #     if(lgv) { -->
-<!-- #       v_city[i] <- name_muni[j] -->
-<!-- #       print(paste0(v_city[i],"-",i)) -->
-<!-- #       break -->
-<!-- #     } -->
-<!-- #   } -->
-<!-- # } -->
-<!-- # kgr_maps_group <- kgr_maps_group |>  -->
-<!-- #   add_column( -->
-<!-- #     city = v_city -->
-<!-- #   ) -->
-<!-- #  -->
-<!-- # kgr_maps <- kgr_maps |>  -->
-<!-- #   left_join( -->
-<!-- #     kgr_maps_group |>  -->
-<!-- #       select(X, Y, city) ,by = c("X","Y") -->
-<!-- #   )  -->
-<!-- ``` -->
-<!-- # Incorporação dos dados do CT -->
-<!-- ## IMPORTANDO A BASE DE DADOS  -->
-<!-- ```{r} -->
-<!-- brazil_ids <- read_rds("data/df_nome.rds") -->
-<!-- nomes_uf <- c(brazil_ids$nome_uf |> unique(),"Brazil") -->
-<!-- dados2 <- read_rds('data/emissions_sources.rds') -->
-<!-- ``` -->
+``` r
+# state <- kgr_maps_group |> pull(state)
+# x <- kgr_maps_group |> pull(X)
+# y <- kgr_maps_group |> pull(Y)
+# 
+# v_city <- 0
+# for(i in 1:nrow(kgr_maps_group)){
+#   obj <- citys |>
+#     filter(abbrev_state == state[i])
+#   name_muni <- citys |>
+#     filter(abbrev_state == state[i]) |>
+#     pull(name_muni)
+#   vlg <- FALSE
+#   for(j in seq_along(name_muni)){
+#     pol <- obj$geom |> pluck(j) |> as.matrix()
+#     lgv <- def_pol(x[i],y[i],pol)
+#     if(lgv) {
+#       v_city[i] <- name_muni[j]
+#       # print(paste0(v_city[i],"-",i," of 380,971"))
+#       break
+#     }
+#   }
+# }
+
+# kgr_maps_group <- kgr_maps_group |>
+#   add_column(
+#     city = v_city
+#   )
+# kgr_maps_group <- read_rds("data/kgr-maps-cities-groups.rds")
+# 
+# kgr_maps <- kgr_maps |>
+#   left_join(
+#     kgr_maps_group |>
+#       select(X, Y, city) ,by = c("X","Y")
+#   )
+# readr::write_rds(kgr_maps_group,"data/kgr-maps-cities-groups.rds")
+```
+
+# Incorporação dos dados do CT
+
+## IMPORTANDO A BASE DE DADOS
+
+``` r
+# brazil_ids <- read_rds("data/df_nome.rds")
+# nomes_uf <- c(brazil_ids$nome_uf |> unique(),"Brazil")
+# dados2 <- read_rds('data/emissions_sources.rds')
+```
+
 <!-- ## CARACTERIZANDO MUNICÍPIO -->
 <!-- ```{r} -->
 <!-- cities <- citys  -->
