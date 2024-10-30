@@ -1,13 +1,13 @@
 Variabilidade espaçotemporal da emissão de GEE e a pecuária Brasileira
 ================
 Oliveira PHM; Panosso AR
-2024-03-28
+2024-10-27
 
 # [Pré-processamento Xco2](https://arpanosso.github.io/pibic-pedro-oliveira/Docs/pre-processamento-xco2.html)
 
-# Análise Para XCO2
+## 1) Análise para XCO<sub>2</sub>
 
-## Carregando Pacotes
+#### Carregando Pacotes
 
 ``` r
 # ### Pacotes necessários
@@ -17,10 +17,7 @@ library(geobr)
 source("r/my-function.R")
 ```
 
-    ## Polygons loaded [states, citysbiomes, conservarion and indigenous]
-    ## List of polygons loaded [list_pol]
-
-## Filtrando a Base
+#### Filtrando a Base
 
 ``` r
 ### Base de dados inicial
@@ -33,22 +30,9 @@ data_set <- read_rds("data/nasa-xco2.rds") |>
 glimpse(data_set)
 ```
 
-    ## Rows: 1,135,303
-    ## Columns: 12
-    ## $ longitude         <dbl> -50.28787, -50.34569, -50.35614, -50.35908, -50.3602…
-    ## $ latitude          <dbl> -12.87398, -12.67460, -12.65862, -12.62923, -12.6399…
-    ## $ time              <dbl> 1420131440, 1420131444, 1420131445, 1420131445, 1420…
-    ## $ date              <date> 2015-01-01, 2015-01-01, 2015-01-01, 2015-01-01, 201…
-    ## $ year              <dbl> 2015, 2015, 2015, 2015, 2015, 2015, 2015, 2015, 2015…
-    ## $ month             <dbl> 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1…
-    ## $ day               <int> 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1…
-    ## $ xco2              <dbl> 396.6765, 396.2824, 394.5461, 396.7095, 397.1642, 39…
-    ## $ xco2_quality_flag <int> 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0…
-    ## $ xco2_incerteza    <dbl> 0.5534429, 0.5050880, 0.6011925, 0.5258151, 0.549804…
-    ## $ path              <chr> "oco2_LtCO2_150101_B11100Ar_230524221540s.nc4", "oco…
-    ## $ state             <chr> "GO", "GO", "GO", "GO", "GO", "GO", "GO", "MT", "MT"…
+### 1.1) Análise de tendência dos dados de xCO<sub>2</sub>
 
-## Análise de tendência dos dados de xCO2
+#### Caraterizando a tendência para resolução tempora em anos.
 
 ``` r
 data_set |> 
@@ -62,44 +46,32 @@ data_set |>
   theme_bw()
 ```
 
-![](README_files/figure-gfm/unnamed-chunk-3-1.png)<!-- -->
+#### Análise de regressão linear para posterios retirada de tendência.
 
 ``` r
 mod_trend_xco2 <- lm(xco2~year, 
           data= data_set |> 
             drop_na())
+mod_trend_xco2
 ```
 
+#### Filtrando a base para os estados
+
 ``` r
-# ## Avaliando o sinal de XCO2
-#Carrega a base filtrada
-estados <- c("MG","MT","MS","GO","PA")
+# definindo os estados a serem analisados
+estados <- c("MG","MT","MS","GO","PA","DF")
+
+# fintrando a base apra esses estados
 data_set_me <- data_set |>
   filter( 
     state %in% estados
   )
-# Resumo da base
 glimpse(data_set_me)
 ```
 
-    ## Rows: 415,559
-    ## Columns: 12
-    ## $ longitude         <dbl> -50.28787, -50.34569, -50.35614, -50.35908, -50.3602…
-    ## $ latitude          <dbl> -12.87398, -12.67460, -12.65862, -12.62923, -12.6399…
-    ## $ time              <dbl> 1420131440, 1420131444, 1420131445, 1420131445, 1420…
-    ## $ date              <date> 2015-01-01, 2015-01-01, 2015-01-01, 2015-01-01, 201…
-    ## $ year              <dbl> 2015, 2015, 2015, 2015, 2015, 2015, 2015, 2015, 2015…
-    ## $ month             <dbl> 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1…
-    ## $ day               <int> 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1…
-    ## $ xco2              <dbl> 396.6765, 396.2824, 394.5461, 396.7095, 397.1642, 39…
-    ## $ xco2_quality_flag <int> 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0…
-    ## $ xco2_incerteza    <dbl> 0.5534429, 0.5050880, 0.6011925, 0.5258151, 0.549804…
-    ## $ path              <chr> "oco2_LtCO2_150101_B11100Ar_230524221540s.nc4", "oco…
-    ## $ state             <chr> "GO", "GO", "GO", "GO", "GO", "GO", "GO", "MT", "MT"…
+#### Histogramas para xCO<sub>2</sub>
 
 ``` r
-#Gráficos
-# Histogramas
 data_set_me |>
   ggplot(aes(x=xco2)) +
   geom_histogram(color="black",fill="gray",
@@ -108,7 +80,7 @@ data_set_me |>
   theme_bw()
 ```
 
-![](README_files/figure-gfm/unnamed-chunk-6-1.png)<!-- -->
+#### Ridges para os estados estudados
 
 ``` r
 data_set_me |>
@@ -124,14 +96,15 @@ data_set_me |>
   theme_ridges() +
   theme(
     legend.position = "top"
-  )
+  ) +
+  labs(fill="")
 ```
 
-![](README_files/figure-gfm/unnamed-chunk-7-1.png)<!-- -->
+#### Tabela de estatística descritiva para xCO<sub>2</sub>
 
 ``` r
 #Estatística Descritiva
-data_set_me |>
+df <- data_set_me |>
   group_by(year,state) |>
   summarise(
     N = length(xco2),
@@ -144,32 +117,142 @@ data_set_me |>
     CV = 100*STD_DV/MEAN,
     SKW = agricolae::skewness(xco2),
     KRT = agricolae::kurtosis(xco2),
-  ) |>
-  writexl::write_xlsx("output/estat-desc-xco2.xlsx")
+  )
+writexl::write_xlsx(df, "output/estat-desc-xco2.xlsx")
+DT::datatable(df)
 ```
 
-## Análise Geoestatística
+### Análise Geoestatística
 
-### PASSO 1
+A definição dos grids a serem amostrados será realizada para todos os
+estados. Caso o estado de GO seja utilizado, é importante que o estado
+de DF seja incluso na lista
 
 ``` r
-my_year = 2018
-my_state = "MT"
-# Criar o adensamento de pontos
-x<-data_set_me$longitude
-y<-data_set_me$latitude
-dis <- 0.05 #Distância entre pontos
-grid <- expand.grid(X=seq(min(x),max(x),dis), Y=seq(min(y),max(y),dis)) |>
+# vetores para coordenadas x e y selecionadas da base do IBGE1
+x <- 0
+y <- 0
+for(i in seq_along(estados)){
+  if( i == 1){
+  x<-list_pol[[estados[i]]][,1]
+  y<-list_pol[[estados[i]]][,2]
+  }else{
+    x <- c(x, list_pol[[estados[i]]][,1])
+    y <- c(y, list_pol[[estados[i]]][,2])
+  }
+}
+dis <- 0.05 # distância para o adensamento de pontos nos estados
+grid_geral <- expand.grid(X=seq(min(x),max(x),dis), Y=seq(min(y),max(y),dis))
+# 
+# É necessário classificar cada ponto como pertencente ou não a um estado.
+# x_g <- grid_geral$X
+# y_g <- grid_geral$Y
+# state_vct <- 0
+# for(j in 1:nrow(grid_geral)){
+#   state_vct[j] <- "Other"
+#   for(i in 1:27){
+#   lgv <- def_pol(x_g[j],y_g[j],list_pol[[i]])
+#     if(lgv){
+#       state_vct[j] <- names(list_pol[i])
+#     }
+#   }
+# }
+# grid_geral <- grid_geral |>
+#   add_column(state_vct) |>
+#   rename(state= state_vct)
+
+# grid_geral_state <- grid_geral |>
+#     filter(state %in% estados)
+# 
+# grid_geral_state <- grid_geral_state |> 
+#   filter(!((state == "PA") &
+#          (X > -54.76 & X < -54) & (Y > 2 & Y < 3)))
+
+# x_ge <- grid_geral_state$X
+# y_ge <- grid_geral_state$Y
+# state_ge <- grid_geral_state$state
+# v_city <- 0
+# for(i in 1:nrow(grid_geral_state)){
+#   obj <- citys |>
+#     filter(abbrev_state == state_ge[i])
+#   name_muni <- citys |>
+#     filter(abbrev_state == state_ge[i]) |>
+#     pull(name_muni)
+#   vlg <- FALSE
+#   for(j in seq_along(name_muni)){
+#     pol <- obj$geom |> pluck(j) |> as.matrix()
+#     lgv <- def_pol(x_ge[i],y_ge[i],pol)
+#     if(lgv) {
+#       v_city[i] <- name_muni[j]
+#       # print(paste0(v_city[i],"-",i," of 380,971"))
+#       break
+#     }
+#   }
+# }
+# grid_geral_state_city <- grid_geral_state |>
+#   add_column(
+#     city = v_city
+#   )
+
+## Encontrando os pontos mais próximos para os refugos
+# refugos <- grid_geral_state_city |> 
+#   filter(is.na(city),state!="PA")
+# 
+# x_ge_nref <- grid_geral_state_city |> filter(!is.na(city)) |> 
+#   pull(X)
+# y_ge_nref <- grid_geral_state_city |> filter(!is.na(city)) |> 
+#   pull(Y)
+# s_ge_nref <- grid_geral_state_city |> filter(!is.na(city)) |> 
+#   pull(state)
+# c_ge_nref <- grid_geral_state_city |> filter(!is.na(city)) |> 
+#   pull(city)
+# 
+# x_ref <- refugos |> pull(X)
+# y_ref <- refugos |> pull(Y)
+# state_ref <- refugos |> pull(state)
+# city_ref <- 0
+# for(i in 1:nrow(refugos)){
+#   dist_vec = sqrt((x_ref[i]-x_ge_nref)^2+(y_ref[i]-y_ge_nref)^2)
+#   i_min <- which(dist_vec == min(dist_vec))[1]
+#   s_ge_nref[i_min]
+#   city_ref[i] <- c_ge_nref[i_min]
+# }
+# refugos$city <- city_ref
+# 
+# grid_geral_state_city <- grid_geral_state_city |> 
+#   filter(!is.na(city)) |> 
+#   rbind(refugos)
+# write_rds(grid_geral_state_city,"data/grid-state-city.rds")
+grid_geral <- read_rds("data/grid-state-city.rds")
+citys |> 
+  filter(abbrev_state %in% estados) |> 
+   ggplot() +
+     geom_sf(aes_string(), color="black",
+              size=.05, show.legend = TRUE) +
+  theme_minimal() +
+  geom_point(
+    data = grid_geral |> 
+  sample_n(1000),
+  aes(X,Y),
+  color = "red"
+  )
+```
+
+#### Análise Geoestatística de xCO<sub>2</sub>
+
+##### PASSO 1
+
+``` r
+my_year = 2015
+my_state = "GO"
+grid <- grid_geral |> 
   mutate(
-    flag_my_state = my_state,
-    flag_st = def_pol(X, Y, list_pol[[my_state]]),
-    flag_df = def_pol(X, Y, list_pol[["DF"]]),
-    flag = ifelse(flag_my_state == "GO", (flag_st|flag_df),flag_st)
-  ) |>  filter(flag) |>
-  dplyr::select(-starts_with("flag"))
+    state = ifelse(state == "DF","GO",state)
+      ) |> 
+  filter(state == my_state) |> 
+  select(X, Y)
 sp::gridded(grid) = ~ X + Y
 # plot(grid$X,grid$Y,col="red",pch=4)
-# points(x,y)
 ```
 
 ### Agregação dos dados
@@ -186,15 +269,7 @@ grid_agg <- expand.grid(
     flag = ifelse(flag_my_state == "GO", (flag_st|flag_df),flag_st)
   ) |>  filter(flag) |>
   dplyr::select(-starts_with("flag"))
-
-data_set_me |>
-  filter(year == 2015,state == my_state) |> 
-  ggplot(aes(longitude,latitude)) +
-  geom_point() +
-  geom_point(data=grid_agg, aes(X,Y))
 ```
-
-![](README_files/figure-gfm/unnamed-chunk-10-1.png)<!-- -->
 
 ``` r
 # Isolando o banco de dados, pelo ano
@@ -203,7 +278,9 @@ data_set_aux  <- data_set_me |>
     year == my_year,
     state == my_state) |>
   dplyr::select(longitude, latitude, xco2)
+```
 
+``` r
 vct_xco2 <- vector();dist_xco2 <- vector();
 lon_grid <- vector();lat_grid <- vector();
 for(i in 1:nrow(data_set_aux)){
@@ -226,9 +303,14 @@ data_set_aux |>
     xco2 = mean(xco2)
   ) |> 
   rename(longitude = lon_grid, latitude = lat_grid) -> data_set_aux
+
+data_set_aux |>
+  ggplot(aes(longitude,latitude)) +
+  geom_point() +
+  geom_point(data=grid_agg, aes(X,Y))
 ```
 
-### PASSO 2 - Construção do Semivariograma Experimental
+##### PASSO 2 - Construção do Semivariograma Experimental
 
 ``` r
 # Alteração no df
@@ -243,8 +325,8 @@ form <- xco2 ~ 1
 # Criando o Semivariograma Experimental.
 vari_exp <- gstat::variogram(form, data = data_set_aux,
                       cressie = FALSE,
-                      cutoff = 15, # distância máxima do semivariograma
-                      width = .8) # distancia entre pontos
+                      cutoff = 10, # distância máxima do semivariograma
+                      width = .25) # distancia entre pontos
 vari_exp  |>
   ggplot(aes(x=dist, y=gamma)) +
   geom_point() +
@@ -252,13 +334,11 @@ vari_exp  |>
        y=expression(paste(gamma,"(h)")))
 ```
 
-![](README_files/figure-gfm/unnamed-chunk-13-1.png)<!-- -->
-
-### Passo 3 - Ajuste dos modelos
+##### Passo 3 - Ajuste dos modelos
 
 ``` r
-patamar=1.8
-alcance=4
+patamar=2.5
+alcance=2
 epepita=.5
 modelo_1 <- gstat::fit.variogram(vari_exp,gstat::vgm(patamar,"Sph",alcance,epepita))
 modelo_2 <- gstat::fit.variogram(vari_exp,gstat::vgm(patamar,"Exp",alcance,epepita))
@@ -296,29 +376,18 @@ plot(vari_exp,
      main =paste("Esf(C0= ",c01,"; C0+C1= ",
                  c0_c11, "; a= ", a1,"; r2 = ",
                  r21,")",sep=""))
-```
 
-![](README_files/figure-gfm/unnamed-chunk-14-1.png)<!-- -->
-
-``` r
 plot(vari_exp,model=modelo_2, col=1,pl=F,pch=16,cex=1.2,cex.main=7,ylab=list("Semivariância",cex=1.3),xlab=list("Distância de Separação h (m)",cex=1.3),main =paste("Exp(C0= ",c02,"; C0+C1= ", c0_c12, "; a= ", a2,"; r2 = ", r22,")",sep=""))
-```
-
-![](README_files/figure-gfm/unnamed-chunk-14-2.png)<!-- -->
-
-``` r
 plot(vari_exp,model=modelo_3, col=1,pl=F,pch=16,cex=1.2,cex.main=7,ylab=list("Semivariância",cex=1.3),xlab=list("Distância de Separação h (m)",cex=1.3),main =paste("Gau(C0= ",c03,"; C0+C1= ", c0_c13, "; a= ", a3,"; r2 = ", r23,")",sep=""))
 ```
 
-![](README_files/figure-gfm/unnamed-chunk-14-3.png)<!-- -->
-
-### Passo 4 - escolha do melhor modelo
+##### Passo 4 - escolha do melhor modelo
 
 ``` r
 # LOOCV - Leave one out cross validation
 conjunto_validacao <- data_set_aux |>
   as_tibble() |>
-  sample_n(50)
+  sample_n(10)
 sp::coordinates(conjunto_validacao) = ~longitude + latitude
 modelos<-list(modelo_1,modelo_2,modelo_3)
 for(j in 1:3){
@@ -341,169 +410,10 @@ for(j in 1:3){
 }
 ```
 
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-
-![](README_files/figure-gfm/unnamed-chunk-15-1.png)<!-- -->
-
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-
-![](README_files/figure-gfm/unnamed-chunk-15-2.png)<!-- -->
-
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-
-![](README_files/figure-gfm/unnamed-chunk-15-3.png)<!-- -->
-
-### Passo 5 - Selecionado o melhor modelo, vamos guardá-lo
+##### Passo 5 - Selecionado o melhor modelo, vamos guardá-lo
 
 ``` r
-modelo <- modelo_3 ## sempre modificar
+modelo <- modelo_2 ## sempre modificar
 # Salvando os parâmetros dos melhores modelo
 model <- modelo |> slice(2) |> pull(model)
 rss <- round(attr(modelo, "SSErr"),4) 
@@ -531,45 +441,42 @@ plot(vari_exp,model=modelo,cex.lab=2, col=1,pl=F,pch=16,cex=2.2,ylab=list("Semiv
 dev.off()
 ```
 
-    ## png 
-    ##   2
-
-### Passo 6 - Krigagem Ordinária - interpolação em locais não amostrados
+##### Passo 6 - Krigagem Ordinária - interpolação em locais não amostrados
 
 ``` r
-# ko_variavel <- gstat::krige(formula=form, data_set_aux, grid, model=modelo,
-#                      block=c(0.1,0.1),
-#                      nsim=0,
-#                      na.action=na.pass,
-#                      debug.level=-1
-# )
+ko_variavel <- gstat::krige(formula=form, data_set_aux, grid, model=modelo,
+                     block=c(0.1,0.1),
+                     nsim=0,
+                     na.action=na.pass,
+                     debug.level=-1
+)
 ```
 
-## Passo 7 Visualização dos padrões espaciais e armazenamento dos dados e imagem.
+##### Passo 7 - Visualização dos padrões espaciais e armazenamento dos dados e imagem.
 
 ``` r
-# mapa <- as.tibble(ko_variavel) |>
-#   ggplot(aes(x=X, y=Y)) +
-#   geom_tile(aes(fill = var1.pred)) +
-#   scale_fill_viridis_c() +
-#   coord_equal() +
-#   labs(x="Longitude",
-#        y="Latitude",
-#        fill="xco2") +
-#   theme_bw()
-# mapa
-# ggsave(paste0("output/maps-kgr/kgr-xco2-",my_state,"-",my_year,".png"), plot = mapa, width = 10, height = 8, dpi = 300)
-# df <- ko_variavel |>
-#   as.tibble() |>
-#   mutate(var1.var = sqrt(var1.var)) 
-# write_rds(df,paste0("output/maps-kgr/kgr-xco2-",my_state,"-",my_year,".rds"))
+mapa <- as.tibble(ko_variavel) |>
+  ggplot(aes(x=X, y=Y)) +
+  geom_tile(aes(fill = var1.pred)) +
+  scale_fill_viridis_c() +
+  coord_equal() +
+  labs(x="Longitude",
+       y="Latitude",
+       fill="xco2") +
+  theme_bw()
+mapa
+ggsave(paste0("output/maps-kgr/kgr-xco2-",my_state,"-",my_year,".png"), plot = mapa, width = 10, height = 8, dpi = 300)
+df <- ko_variavel |>
+  as_tibble() |>
+  mutate(var1.var = sqrt(var1.var))
+write_rds(df,paste0("output/maps-kgr/kgr-xco2-",my_state,"-",my_year,".rds"))
 ```
 
-# Análise Para XCH4
+## 2) Análise para XCH<sub>4</sub>
 
-## Carregando Pacotes
+### Carregando Pacotes
 
-## Filtrando a Base
+##### Filtrando a Base
 
 ``` r
 ### Base de dados inicial
@@ -581,21 +488,6 @@ data_set <- read_rds("data/gosat-xch4.rds") |>
   select(-flag_nordeste, -flag_br)
 glimpse(data_set)
 ```
-
-    ## Rows: 52,796
-    ## Columns: 12
-    ## $ longitude         <dbl> -50.55648, -50.55732, -52.16461, -52.16571, -52.1661…
-    ## $ latitude          <dbl> 0.6428701, 0.6460943, -6.9492564, -6.9488077, -6.945…
-    ## $ time              <dbl> 1422806474, 1422806479, 1422806571, 1422806576, 1422…
-    ## $ date              <date> 2015-02-01, 2015-02-01, 2015-02-01, 2015-02-01, 201…
-    ## $ year              <dbl> 2015, 2015, 2015, 2015, 2015, 2015, 2015, 2015, 2015…
-    ## $ month             <dbl> 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2…
-    ## $ day               <int> 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1…
-    ## $ xch4              <dbl> 1834.315, 1842.071, 1840.691, 1826.608, 1834.456, 18…
-    ## $ xch4_quality_flag <int> 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0…
-    ## $ xch4_incerteza    <dbl> 9.699241, 9.678691, 10.075063, 9.945088, 9.987506, 1…
-    ## $ path              <chr> "UoL-GHG-L2-CH4-GOSAT-OCPR-20150201-fv9.0.nc", "UoL-…
-    ## $ state             <chr> "AP", "AP", "PA", "PA", "PA", "MT", "MT", "MT", "MT"…
 
 ## Análise de tendência dos dados xCH4
 
@@ -610,8 +502,6 @@ data_set |>
   label =  paste(..eq.label.., ..rr.label.., sep = "*plain(\",\")~~"))) +
   theme_bw()
 ```
-
-![](README_files/figure-gfm/unnamed-chunk-20-1.png)<!-- -->
 
 ``` r
 mod_trend_xch4<- lm(xch4 ~ year, 
@@ -630,31 +520,6 @@ data_set_me <- data_set |>
 glimpse(data_set_me)
 ```
 
-    ## Rows: 24,344
-    ## Columns: 12
-    ## $ longitude         <dbl> -52.16461, -52.16571, -52.16616, -50.32345, -50.3242…
-    ## $ latitude          <dbl> -6.949256, -6.948808, -6.945048, -9.851810, -9.84787…
-    ## $ time              <dbl> 1422806571, 1422806576, 1422806580, 1422806626, 1422…
-    ## $ date              <date> 2015-02-01, 2015-02-01, 2015-02-01, 2015-02-01, 201…
-    ## $ year              <dbl> 2015, 2015, 2015, 2015, 2015, 2015, 2015, 2015, 2015…
-    ## $ month             <dbl> 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2…
-    ## $ day               <int> 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1…
-    ## $ xch4              <dbl> 1840.691, 1826.608, 1834.456, 1839.762, 1828.547, 18…
-    ## $ xch4_quality_flag <int> 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0…
-    ## $ xch4_incerteza    <dbl> 10.075063, 9.945088, 9.987506, 10.116740, 10.031814,…
-    ## $ path              <chr> "UoL-GHG-L2-CH4-GOSAT-OCPR-20150201-fv9.0.nc", "UoL-…
-    ## $ state             <chr> "PA", "PA", "PA", "MT", "MT", "MT", "MT", "MT", "MT"…
-
-``` r
-data_set_me |>
-  filter(year == 2015) |>
-  sample_n(1000) |> 
-  ggplot(aes(x = longitude, latitude)) +
-  geom_point()
-```
-
-![](README_files/figure-gfm/unnamed-chunk-23-1.png)<!-- -->
-
 ``` r
 #Gráficos
 # Histogramas
@@ -665,8 +530,6 @@ data_set_me |>
   facet_wrap(~year, scales = "free") +
   theme_bw()
 ```
-
-![](README_files/figure-gfm/unnamed-chunk-24-1.png)<!-- -->
 
 ``` r
 data_set_me |>
@@ -685,11 +548,9 @@ data_set_me |>
   )
 ```
 
-![](README_files/figure-gfm/unnamed-chunk-25-1.png)<!-- -->
-
 ``` r
 #Estatística Descritiva
-data_set_me |>
+df <- data_set_me |>
   group_by(year,state) |>
   summarise(
     N = length(xch4),
@@ -702,8 +563,9 @@ data_set_me |>
     CV = 100*STD_DV/MEAN,
     SKW = agricolae::skewness(xch4),
     KRT = agricolae::kurtosis(xch4),
-  ) |>
-  writexl::write_xlsx("output/estat-desc-xch4.xlsx")
+  )
+writexl::write_xlsx(df, "output/estat-desc-xch4.xlsx")
+DT::datatable(df)
 ```
 
 ## Análise Geoestatística
@@ -711,48 +573,16 @@ data_set_me |>
 ### PASSO 1
 
 ``` r
-my_year = 2020
-my_state = "PA"
-# Criar o adensamento de pontos
-x<-data_set_me$longitude
-y<-data_set_me$latitude
-dis <- 0.05 #Distância entre pontos
-grid <- expand.grid(X=seq(min(x),max(x),dis), Y=seq(min(y),max(y),dis)) |>
-  mutate(
-    flag_my_state = my_state,
-    flag_st = def_pol(X, Y, list_pol[[my_state]]),
-    flag_df = def_pol(X, Y, list_pol[["DF"]]),
-    flag = ifelse(flag_my_state == "GO", (flag_st|flag_df),flag_st)
-  ) |>  filter(flag) |>
-  dplyr::select(-starts_with("flag"))
-sp::gridded(grid) = ~ X + Y
-# plot(grid$X,grid$Y,col="red",pch=4)
-# points(x,y)
+# my_year = 2016
+# my_state = "MG"
+# grid <- grid_geral |> 
+#   mutate(
+#     state = ifelse(state == "DF","GO",state)
+#       ) |> 
+#   filter(state == my_state) |> 
+#   select(X, Y)
+# sp::gridded(grid) = ~ X + Y
 ```
-
-### Agregação dos dados
-
-``` r
-dist_agg <- .15 #Distância entre pontos
-grid_agg <- expand.grid(
-  X=seq(min(x),max(x),dist_agg), 
-  Y=seq(min(y),max(y),dist_agg)) |>
-  mutate(
-    flag_my_state = my_state,
-    flag_st = def_pol(X, Y, list_pol[[my_state]]),
-    flag_df = def_pol(X, Y, list_pol[["DF"]]),
-    flag = ifelse(flag_my_state == "GO", (flag_st|flag_df),flag_st)
-  ) |>  filter(flag) |>
-  dplyr::select(-starts_with("flag"))
-
-data_set_me |>
-  filter(year == 2015,state == my_state) |> 
-  ggplot(aes(longitude,latitude)) +
-  geom_point() +
-  geom_point(data=grid_agg, aes(X,Y))
-```
-
-![](README_files/figure-gfm/unnamed-chunk-28-1.png)<!-- -->
 
 ``` r
 # Isolando o banco de dados, pelo ano
@@ -801,16 +631,14 @@ form <- xch4 ~ 1
 # Criando o Semivariograma Experimental.
 vari_exp <- gstat::variogram(form, data = data_set_aux,
                       cressie = FALSE,
-                      cutoff = 8, # distância máxima do semivariograma
-                      width = .7) # distancia entre pontos
+                      cutoff = 18, # distância máxima do semivariograma
+                      width = .001) # distancia entre pontos
 vari_exp  |>
   ggplot(aes(x=dist, y=gamma)) +
   geom_point() +
   labs(x="lag (º)",
        y=expression(paste(gamma,"(h)")))
 ```
-
-![](README_files/figure-gfm/unnamed-chunk-31-1.png)<!-- -->
 
 ### Passo 3 - Ajuste dos modelos
 
@@ -854,21 +682,10 @@ plot(vari_exp,
      main =paste("Esf(C0= ",c01,"; C0+C1= ",
                  c0_c11, "; a= ", a1,"; r2 = ",
                  r21,")",sep=""))
-```
 
-![](README_files/figure-gfm/unnamed-chunk-32-1.png)<!-- -->
-
-``` r
 plot(vari_exp,model=modelo_2, col=1,pl=F,pch=16,cex=1.2,cex.main=7,ylab=list("Semivariância",cex=1.3),xlab=list("Distância de Separação h (m)",cex=1.3),main =paste("Exp(C0= ",c02,"; C0+C1= ", c0_c12, "; a= ", a2,"; r2 = ", r22,")",sep=""))
-```
-
-![](README_files/figure-gfm/unnamed-chunk-32-2.png)<!-- -->
-
-``` r
 plot(vari_exp,model=modelo_3, col=1,pl=F,pch=16,cex=1.2,cex.main=7,ylab=list("Semivariância",cex=1.3),xlab=list("Distância de Separação h (m)",cex=1.3),main =paste("Gau(C0= ",c03,"; C0+C1= ", c0_c13, "; a= ", a3,"; r2 = ", r23,")",sep=""))
 ```
-
-![](README_files/figure-gfm/unnamed-chunk-32-3.png)<!-- -->
 
 ### Passo 4 - escolha do melhor modelo
 
@@ -898,165 +715,6 @@ for(j in 1:3){
   abline(0,1,lty=3)
 }
 ```
-
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-
-![](README_files/figure-gfm/unnamed-chunk-33-1.png)<!-- -->
-
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-
-![](README_files/figure-gfm/unnamed-chunk-33-2.png)<!-- -->
-
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-
-![](README_files/figure-gfm/unnamed-chunk-33-3.png)<!-- -->
 
 ### Passo 5 - Selecionado o melhor modelo, vamos guardá-lo
 
@@ -1089,38 +747,35 @@ plot(vari_exp,model=modelo,cex.lab=2, col=1,pl=F,pch=16,cex=2.2,ylab=list("Semiv
 dev.off()
 ```
 
-    ## png 
-    ##   2
-
 ### Passo 6 - Krigagem Ordinária - interpolação em locais não amostrados
 
 ``` r
-# ko_variavel <- gstat::krige(formula=form, data_set_aux, grid, model=modelo,
-#                      block=c(0.1,0.1),
-#                      nsim=0,
-#                      na.action=na.pass,
-#                      debug.level=-1
-# )
+ko_variavel <- gstat::krige(formula=form, data_set_aux, grid, model=modelo,
+                     block=c(0.1,0.1),
+                     nsim=0,
+                     na.action=na.pass,
+                     debug.level=-1
+)
 ```
 
 ## Passo 7 Visualização dos padrões espaciais e armazenamento dos dados e imagem.
 
 ``` r
-# mapa <- as.tibble(ko_variavel) |>
-#   ggplot(aes(x=X, y=Y)) +
-#   geom_tile(aes(fill = var1.pred)) +
-#   scale_fill_viridis_c() +
-#   coord_equal() +
-#   labs(x="Longitude",
-#        y="Latitude",
-#        fill="xch4") +
-#   theme_bw()
-# mapa
-# ggsave(paste0("output/maps-kgr/kgr-xch4-",my_state,"-",my_year,".png"), plot = mapa, width = 10, height = 8, dpi = 300)
-# df <- ko_variavel |>
-#   as.tibble() |>
-#   mutate(var1.var = sqrt(var1.var)) 
-# write_rds(df,paste0("output/maps-kgr/kgr-xch4-",my_state,"-",my_year,".rds"))
+mapa <- as.tibble(ko_variavel) |>
+  ggplot(aes(x=X, y=Y)) +
+  geom_tile(aes(fill = var1.pred)) +
+  scale_fill_viridis_c() +
+  coord_equal() +
+  labs(x="Longitude",
+       y="Latitude",
+       fill="xch4") +
+  theme_bw()
+mapa
+ggsave(paste0("output/maps-kgr/kgr-xch4-",my_state,"-",my_year,".png"), plot = mapa, width = 10, height = 8, dpi = 300)
+df <- ko_variavel |>
+  as.tibble() |>
+  mutate(var1.var = sqrt(var1.var))
+write_rds(df,paste0("output/maps-kgr/kgr-xch4-",my_state,"-",my_year,".rds"))
 ```
 
 # Análise para SIF
@@ -1141,36 +796,7 @@ data_set <- read_rds("data/oco2-sif.rds") |>
 glimpse(data_set)
 ```
 
-    ## Rows: 34,787
-    ## Columns: 25
-    ## $ longitude                                                     <dbl> -52.5, -…
-    ## $ longitude_bnds                                                <chr> "-53.0:-…
-    ## $ latitude                                                      <dbl> -4.5, -3…
-    ## $ latitude_bnds                                                 <chr> "-5.0:-4…
-    ## $ time_yyyymmddhhmmss                                           <dbl> 2.01501e…
-    ## $ time_bnds_yyyymmddhhmmss                                      <chr> "2015010…
-    ## $ altitude_km                                                   <dbl> 2955.042…
-    ## $ alt_bnds_km                                                   <chr> "0.0:591…
-    ## $ fluorescence_radiance_757nm_uncert_idp_ph_sec_1_m_2_sr_1_um_1 <dbl> 7.538797…
-    ## $ fluorescence_radiance_757nm_idp_ph_sec_1_m_2_sr_1_um_1        <dbl> 2.977973…
-    ## $ xco2_moles_mole_1                                             <dbl> 0.000393…
-    ## $ aerosol_total_aod                                             <dbl> 0.157814…
-    ## $ fluorescence_offset_relative_771nm_idp                        <dbl> 0.020921…
-    ## $ fluorescence_at_reference_ph_sec_1_m_2_sr_1_um_1              <dbl> 4.183452…
-    ## $ fluorescence_radiance_771nm_idp_ph_sec_1_m_2_sr_1_um_1        <dbl> 3.720872…
-    ## $ fluorescence_offset_relative_757nm_idp                        <dbl> 0.016250…
-    ## $ fluorescence_radiance_771nm_uncert_idp_ph_sec_1_m_2_sr_1_um_1 <dbl> 5.870890…
-    ## $ XCO2                                                          <dbl> 385.1973…
-    ## $ xco2                                                          <dbl> 393.0661…
-    ## $ date                                                          <dttm> 2015-01…
-    ## $ year                                                          <dbl> 2015, 20…
-    ## $ month                                                         <dbl> 1, 1, 1,…
-    ## $ day                                                           <int> 1, 1, 1,…
-    ## $ sif                                                           <dbl> 1.110144…
-    ## $ state                                                         <chr> "PA", "P…
-
 ``` r
-# ## Avaliando o sinal de XCH4
 #Carrega a base filtrada
 data_set_me <- data_set |>
   filter( 
@@ -1179,44 +805,6 @@ data_set_me <- data_set |>
 # Resumo da base
 glimpse(data_set_me)
 ```
-
-    ## Rows: 14,294
-    ## Columns: 25
-    ## $ longitude                                                     <dbl> -52.5, -…
-    ## $ longitude_bnds                                                <chr> "-53.0:-…
-    ## $ latitude                                                      <dbl> -4.5, -3…
-    ## $ latitude_bnds                                                 <chr> "-5.0:-4…
-    ## $ time_yyyymmddhhmmss                                           <dbl> 2.01501e…
-    ## $ time_bnds_yyyymmddhhmmss                                      <chr> "2015010…
-    ## $ altitude_km                                                   <dbl> 2955.042…
-    ## $ alt_bnds_km                                                   <chr> "0.0:591…
-    ## $ fluorescence_radiance_757nm_uncert_idp_ph_sec_1_m_2_sr_1_um_1 <dbl> 7.538797…
-    ## $ fluorescence_radiance_757nm_idp_ph_sec_1_m_2_sr_1_um_1        <dbl> 2.977973…
-    ## $ xco2_moles_mole_1                                             <dbl> 0.000393…
-    ## $ aerosol_total_aod                                             <dbl> 0.157814…
-    ## $ fluorescence_offset_relative_771nm_idp                        <dbl> 0.020921…
-    ## $ fluorescence_at_reference_ph_sec_1_m_2_sr_1_um_1              <dbl> 4.183452…
-    ## $ fluorescence_radiance_771nm_idp_ph_sec_1_m_2_sr_1_um_1        <dbl> 3.720872…
-    ## $ fluorescence_offset_relative_757nm_idp                        <dbl> 0.016250…
-    ## $ fluorescence_radiance_771nm_uncert_idp_ph_sec_1_m_2_sr_1_um_1 <dbl> 5.870890…
-    ## $ XCO2                                                          <dbl> 385.1973…
-    ## $ xco2                                                          <dbl> 393.0661…
-    ## $ date                                                          <dttm> 2015-01…
-    ## $ year                                                          <dbl> 2015, 20…
-    ## $ month                                                         <dbl> 1, 1, 1,…
-    ## $ day                                                           <int> 1, 1, 1,…
-    ## $ sif                                                           <dbl> 1.110144…
-    ## $ state                                                         <chr> "PA", "P…
-
-``` r
-data_set_me |>
-  filter(year == 2015) |>
-  sample_n(1000) |> 
-  ggplot(aes(x = longitude, latitude)) +
-  geom_point()
-```
-
-![](README_files/figure-gfm/unnamed-chunk-39-1.png)<!-- -->
 
 ``` r
 #Gráficos
@@ -1228,8 +816,6 @@ data_set_me |>
   facet_wrap(~year, scales = "free") +
   theme_bw()
 ```
-
-![](README_files/figure-gfm/unnamed-chunk-40-1.png)<!-- -->
 
 ``` r
 data_set_me |>
@@ -1248,11 +834,9 @@ data_set_me |>
   )
 ```
 
-![](README_files/figure-gfm/unnamed-chunk-41-1.png)<!-- -->
-
 ``` r
 #Estatística Descritiva
-data_set_me |>
+df <- data_set_me |>
   group_by(year,state) |>
   summarise(
     N = length(sif),
@@ -1265,8 +849,9 @@ data_set_me |>
     CV = 100*STD_DV/MEAN,
     SKW = agricolae::skewness(sif),
     KRT = agricolae::kurtosis(sif),
-  ) |>
-  writexl::write_xlsx("output/estat-desc-sif.xlsx")
+  )
+writexl::write_xlsx(df,"output/estat-desc-sif.xlsx")
+DT::datatable(df)
 ```
 
 ## Análise Geoestatística
@@ -1277,45 +862,14 @@ data_set_me |>
 # my_year = 2015
 # my_state = "MT"
 # Criar o adensamento de pontos
-x<-data_set_me$longitude
-y<-data_set_me$latitude
-dis <- 0.05 #Distância entre pontos
-grid <- expand.grid(X=seq(min(x),max(x),dis), Y=seq(min(y),max(y),dis)) |>
-  mutate(
-    flag_my_state = my_state,
-    flag_st = def_pol(X, Y, list_pol[[my_state]]),
-    flag_df = def_pol(X, Y, list_pol[["DF"]]),
-    flag = ifelse(flag_my_state == "GO", (flag_st|flag_df),flag_st)
-  ) |>  filter(flag) |>
-  dplyr::select(-starts_with("flag"))
-sp::gridded(grid) = ~ X + Y
-# plot(grid$X,grid$Y,col="red",pch=4)
-# points(x,y)
+# grid <- grid_geral |> 
+#   mutate(
+#     state = ifelse(state == "DF","GO",state)
+#       ) |> 
+#   filter(state == my_state) |> 
+#   select(X, Y)
+# sp::gridded(grid) = ~ X + Y
 ```
-
-### Agregação dos dados
-
-``` r
-dist_agg <- .15 #Distância entre pontos
-grid_agg <- expand.grid(
-  X=seq(min(x),max(x),dist_agg), 
-  Y=seq(min(y),max(y),dist_agg)) |>
-  mutate(
-    flag_my_state = my_state,
-    flag_st = def_pol(X, Y, list_pol[[my_state]]),
-    flag_df = def_pol(X, Y, list_pol[["DF"]]),
-    flag = ifelse(flag_my_state == "GO", (flag_st|flag_df),flag_st)
-  ) |>  filter(flag) |>
-  dplyr::select(-starts_with("flag"))
-
-data_set_me |>
-  filter(year == 2015,state == my_state) |> 
-  ggplot(aes(longitude,latitude)) +
-  geom_point() +
-  geom_point(data=grid_agg, aes(X,Y))
-```
-
-![](README_files/figure-gfm/unnamed-chunk-44-1.png)<!-- -->
 
 ``` r
 # Isolando o banco de dados, pelo ano
@@ -1368,8 +922,8 @@ form <- sif ~ 1
 # Criando o Semivariograma Experimental.
 vari_exp <- gstat::variogram(form, data = data_set_aux,
                       cressie = FALSE,
-                      cutoff = 6, # distância máxima do semivariograma
-                      width = 0.02,
+                      cutoff = 8, # distância máxima do semivariograma
+                      width = 0.1,
                       cloud = FALSE) # distancia entre ponts
 vari_exp  |>
   ggplot(aes(x=dist, y=gamma)) +
@@ -1377,8 +931,6 @@ vari_exp  |>
   labs(x="lag (º)",
        y=expression(paste(gamma,"(h)")))
 ```
-
-![](README_files/figure-gfm/unnamed-chunk-47-1.png)<!-- -->
 
 ### Passo 3 - Ajuste dos modelos
 
@@ -1422,21 +974,10 @@ plot(vari_exp,
      main =paste("Esf(C0= ",c01,"; C0+C1= ",
                  c0_c11, "; a= ", a1,"; r2 = ",
                  r21,")",sep=""))
-```
 
-![](README_files/figure-gfm/unnamed-chunk-48-1.png)<!-- -->
-
-``` r
 plot(vari_exp,model=modelo_2, col=1,pl=F,pch=16,cex=1.2,cex.main=7,ylab=list("Semivariância",cex=1.3),xlab=list("Distância de Separação h (m)",cex=1.3),main =paste("Exp(C0= ",c02,"; C0+C1= ", c0_c12, "; a= ", a2,"; r2 = ", r22,")",sep=""))
-```
-
-![](README_files/figure-gfm/unnamed-chunk-48-2.png)<!-- -->
-
-``` r
 plot(vari_exp,model=modelo_3, col=1,pl=F,pch=16,cex=1.2,cex.main=7,ylab=list("Semivariância",cex=1.3),xlab=list("Distância de Separação h (m)",cex=1.3),main =paste("Gau(C0= ",c03,"; C0+C1= ", c0_c13, "; a= ", a3,"; r2 = ", r23,")",sep=""))
 ```
-
-![](README_files/figure-gfm/unnamed-chunk-48-3.png)<!-- -->
 
 ### Passo 4 - escolha do melhor modelo
 
@@ -1466,45 +1007,6 @@ for(j in 1:3){
   abline(0,1,lty=3)
 }
 ```
-
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-
-![](README_files/figure-gfm/unnamed-chunk-49-1.png)<!-- -->
-
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-
-![](README_files/figure-gfm/unnamed-chunk-49-2.png)<!-- -->
-
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-    ## [using ordinary kriging]
-
-![](README_files/figure-gfm/unnamed-chunk-49-3.png)<!-- -->
 
 ### Passo 5 - Selecionado o melhor modelo, vamos guardá-lo
 
@@ -1537,38 +1039,35 @@ plot(vari_exp,model=modelo,cex.lab=2, col=1,pl=F,pch=16,cex=2.2,ylab=list("Semiv
 dev.off()
 ```
 
-    ## png 
-    ##   2
-
 ### Passo 6 - Krigagem Ordinária - interpolação em locais não amostrados
 
 ``` r
-# ko_variavel <- gstat::krige(formula=form, data_set_aux, grid, model=modelo,
-#                      block=c(0.1,0.1),
-#                      nsim=0,
-#                      na.action=na.pass,
-#                      debug.level=-1
-# )
+ko_variavel <- gstat::krige(formula=form, data_set_aux, grid, model=modelo,
+                     block=c(0.1,0.1),
+                     nsim=0,
+                     na.action=na.pass,
+                     debug.level=-1
+)
 ```
 
 ## Passo 7 Visualização dos padrões espaciais e armazenamento dos dados e imagem.
 
 ``` r
-# mapa <- as.tibble(ko_variavel) |>
-#   ggplot(aes(x=X, y=Y)) +
-#   geom_tile(aes(fill = var1.pred)) +
-#   scale_fill_viridis_c() +
-#   coord_equal() +
-#   labs(x="Longitude",
-#        y="Latitude",
-#        fill="sif") +
-#   theme_bw()
-# mapa
-# ggsave(paste0("output/maps-kgr/kgr-sif-",my_state,"-",my_year,".png"), plot = mapa, width = 10, height = 8, dpi = 300)
-# df <- ko_variavel |>
-#   as.tibble() |>
-#   mutate(var1.var = sqrt(var1.var)) 
-# write_rds(df,paste0("output/maps-kgr/kgr-sif-",my_state,"-",my_year,".rds"))
+mapa <- as.tibble(ko_variavel) |>
+  ggplot(aes(x=X, y=Y)) +
+  geom_tile(aes(fill = var1.pred)) +
+  scale_fill_viridis_c() +
+  coord_equal() +
+  labs(x="Longitude",
+       y="Latitude",
+       fill="sif") +
+  theme_bw()
+mapa
+ggsave(paste0("output/maps-kgr/kgr-sif-",my_state,"-",my_year,".png"), plot = mapa, width = 10, height = 8, dpi = 300)
+df <- ko_variavel |>
+  as.tibble() |>
+  mutate(var1.var = sqrt(var1.var))
+write_rds(df,paste0("output/maps-kgr/kgr-sif-",my_state,"-",my_year,".rds"))
 ```
 
 # Compilando os mapas krigados.
@@ -1577,79 +1076,14 @@ dev.off()
 
 ``` r
 list_rds <- list.files("output/maps-kgr/",
-           pattern = ".rds",
+           pattern = ".rds$",
            full.names = TRUE)
 kgr_maps <- map_df(list_rds, rds_reader)
-
-kgr_maps_group <- kgr_maps |>
-  group_by(variable, state, X, Y) |>
-  summarise(
-    n = n()
-  ) |> select(-n)
-
-kgr_maps |>
-  group_by(variable, state) |>
-  summarise(
-    n = n()
-  )
 ```
 
-    ## # A tibble: 15 × 3
-    ## # Groups:   variable [3]
-    ##    variable state      n
-    ##    <chr>    <chr>  <int>
-    ##  1 sif      GO     70068
-    ##  2 sif      MG    111828
-    ##  3 sif      MS     72708
-    ##  4 sif      MT    180720
-    ##  5 sif      PA    241032
-    ##  6 xch4     GO     70086
-    ##  7 xch4     MG    113928
-    ##  8 xch4     MS     69198
-    ##  9 xch4     MT    178626
-    ## 10 xch4     PA    244432
-    ## 11 xco2     GO     70134
-    ## 12 xco2     MG    120156
-    ## 13 xco2     MS     74136
-    ## 14 xco2     MT    180936
-    ## 15 xco2     PA    246126
-
 ``` r
-# state <- kgr_maps_group |> pull(state)
-# x <- kgr_maps_group |> pull(X)
-# y <- kgr_maps_group |> pull(Y)
-# 
-# v_city <- 0
-# for(i in 1:nrow(kgr_maps_group)){
-#   obj <- citys |>
-#     filter(abbrev_state == state[i])
-#   name_muni <- citys |>
-#     filter(abbrev_state == state[i]) |>
-#     pull(name_muni)
-#   vlg <- FALSE
-#   for(j in seq_along(name_muni)){
-#     pol <- obj$geom |> pluck(j) |> as.matrix()
-#     lgv <- def_pol(x[i],y[i],pol)
-#     if(lgv) {
-#       v_city[i] <- name_muni[j]
-#       # print(paste0(v_city[i],"-",i," of 380,971"))
-#       break
-#     }
-#   }
-# }
-# kgr_maps_group <- kgr_maps_group |>
-#   add_column(
-#     city = v_city
-#   )
-
-kgr_maps_group <- read_rds("data/kgr-maps-cities-groups.rds")
-
-kgr_maps <- kgr_maps |>
-  full_join(
-    kgr_maps_group |>
-      ungroup() |> 
-      select(X, Y, city) ,by = c("X","Y"),
-  )
+grid_geral_state_city <- read_rds("data/grid-state-city.rds") |> 
+  ungroup()
 ```
 
 # Retirando atendência
@@ -1660,24 +1094,9 @@ a_co2 <- mod_trend_xco2$coefficients[[1]]
 b_co2 <- mod_trend_xco2$coefficients[[2]]
 a_ch4 <- mod_trend_xch4$coefficients[[1]]
 b_ch4 <- mod_trend_xch4$coefficients[[2]]
-
 glimpse(kgr_maps)
-```
-
-    ## Rows: 2,325,318
-    ## Columns: 8
-    ## $ variable  <chr> "sif", "sif", "sif", "sif", "sif", "sif", "sif", "sif", "sif…
-    ## $ state     <chr> "GO", "GO", "GO", "GO", "GO", "GO", "GO", "GO", "GO", "GO", …
-    ## $ year      <dbl> 2015, 2015, 2015, 2015, 2015, 2015, 2015, 2015, 2015, 2015, …
-    ## $ X         <dbl> -50.90, -50.85, -51.00, -50.95, -50.90, -51.00, -50.95, -50.…
-    ## $ Y         <dbl> -19.45, -19.45, -19.40, -19.40, -19.40, -19.35, -19.35, -19.…
-    ## $ value     <dbl> 0.5935694, 0.5899778, 0.5990964, 0.5951511, 0.5913777, 0.596…
-    ## $ value_std <dbl> 0.1179227, 0.1181349, 0.1155714, 0.1157388, 0.1159298, 0.113…
-    ## $ city      <chr> "Itajá", "Itajá", "Itajá", "Itajá", "Itajá", "Itajá", "Itajá…
-
-``` r
-kgr_maps_detrend <- kgr_maps |> 
-  group_by(variable) |> 
+kgr_maps_detrend <- kgr_maps |>
+  group_by(variable) |>
   mutate(
     value_est = ifelse(variable =="xco2",a_co2+b_co2*year,
                        ifelse(variable =="xch4",a_ch4+b_ch4*year,value)),
@@ -1685,21 +1104,32 @@ kgr_maps_detrend <- kgr_maps |>
     value_detrend = ifelse(variable =="xco2",(a_co2-delta)-(mean(value)-a_co2),
                        ifelse(variable =="xch4",(a_ch4-delta)-(mean(value)-a_ch4),value)),
     value = value_detrend
-  ) |> ungroup() |> 
+  ) |> ungroup() |>
   select(-value_est,-delta,-value_detrend)
 ```
 
 ## Cálculo do Beta para cada municípios
 
 ``` r
-kgr_maps_beta <- kgr_maps_detrend |> 
-  group_by(variable,state,city,year) |> 
+kgr_maps_detrend <- kgr_maps_detrend |> 
+  left_join(
+    grid_geral |> 
+      mutate(
+        state = ifelse(state == "DF","GO",state)
+      ),
+  by=c("state","X","Y")
+  )
+```
+
+``` r
+kgr_maps_nested <- kgr_maps_detrend |>
+  group_by(variable,state,city,year) |>
   summarise(
     media = mean(value,na.rm = TRUE),
     desv_pad = mean(value_std)
-  ) |> 
+  ) |>
   group_by(variable,state,city) |>
-  nest() |> 
+  nest() |>
   ungroup()
 
 get_reg_lin <- function(df, par_return = "beta"){
@@ -1709,31 +1139,28 @@ get_reg_lin <- function(df, par_return = "beta"){
   value <- mod$coefficients[[2]]
   if(par_return == "beta") return(value)
 }
-kgr_maps_beta <- kgr_maps_beta |> 
+
+kgr_maps_beta <- kgr_maps_nested |>
   mutate(
     beta = map(data,get_reg_lin)
-  ) |> 
-  select(-data) |> 
+  ) |>
+  select(-data) |>
   unnest()
 
 glimpse(kgr_maps_beta)
 ```
 
-    ## Rows: 4,299
-    ## Columns: 4
-    ## $ variable <chr> "sif", "sif", "sif", "sif", "sif", "sif", "sif", "sif", "sif"…
-    ## $ state    <chr> "GO", "GO", "GO", "GO", "GO", "GO", "GO", "GO", "GO", "GO", "…
-    ## $ city     <chr> "Abadia De Goiás", "Abadiânia", "Acreúna", "Adelândia", "Alex…
-    ## $ beta     <dbl> 5.693984, 5.854820, 5.068227, 6.334005, 5.680407, 4.805122, 7…
-
 ## Mapeando o beta por cidades
 
 ``` r
-city_kgr_beta <- left_join(citys |> filter(abbrev_state %in% estados),
-           kgr_maps_beta |>
-             pivot_wider(names_from = variable,
-                         values_from = beta,names_prefix = "beta_") |> 
-             rename(abbrev_state = state,name_muni =city),
+city_kgr_beta <- left_join(
+  citys |> filter(abbrev_state %in% estados),
+  kgr_maps_beta |>
+    pivot_wider(
+      names_from = variable,
+      values_from = beta,
+      names_prefix = "beta_") |>
+    rename(abbrev_state = state,name_muni =city),
            by=c("abbrev_state","name_muni"))
 ```
 
@@ -1763,8 +1190,6 @@ city_kgr_beta |>
      scale_fill_viridis_c(option = "inferno")
 ```
 
-![](README_files/figure-gfm/unnamed-chunk-57-1.png)<!-- -->
-
 ``` r
 city_kgr_beta |>
      ggplot() +
@@ -1790,8 +1215,6 @@ city_kgr_beta |>
          y = 'Latitude') +
      scale_fill_viridis_c(option = "inferno")
 ```
-
-![](README_files/figure-gfm/unnamed-chunk-58-1.png)<!-- -->
 
 ``` r
 city_kgr_beta |>
@@ -1819,15 +1242,13 @@ city_kgr_beta |>
      scale_fill_viridis_c(option = "inferno")
 ```
 
-![](README_files/figure-gfm/unnamed-chunk-59-1.png)<!-- -->
-
 ## Inspeção por estado
 
 ``` r
 variables <- c("beta_sif","beta_xch4","beta_xco2")
 my_plot_map_beta <- function(.estado, .variable){
   city_kgr_beta |>
-    filter(abbrev_state == .estado) |> 
+    filter(abbrev_state == .estado) |>
     ggplot() +
      geom_sf(aes_string(fill=.variable), color="black",
               size=.05, show.legend = TRUE)  +
@@ -1846,95 +1267,14 @@ my_plot_map_beta <- function(.estado, .variable){
           y = 'Latitude') +
     scale_fill_gradient(low="yellow",high = "red")
 }
-my_plot_map_beta("PA", "beta_xch4")
-```
+my_plot_map_beta("GO", "beta_xch4")
 
-![](README_files/figure-gfm/unnamed-chunk-60-1.png)<!-- -->
-
-``` r
 map(estados,my_plot_map_beta,.variable="beta_xco2")
-```
-
-    ## [[1]]
-
-![](README_files/figure-gfm/unnamed-chunk-60-2.png)<!-- -->
-
-    ## 
-    ## [[2]]
-
-![](README_files/figure-gfm/unnamed-chunk-60-3.png)<!-- -->
-
-    ## 
-    ## [[3]]
-
-![](README_files/figure-gfm/unnamed-chunk-60-4.png)<!-- -->
-
-    ## 
-    ## [[4]]
-
-![](README_files/figure-gfm/unnamed-chunk-60-5.png)<!-- -->
-
-    ## 
-    ## [[5]]
-
-![](README_files/figure-gfm/unnamed-chunk-60-6.png)<!-- -->
-
-``` r
 map(estados,my_plot_map_beta,.variable="beta_xch4")
-```
-
-    ## [[1]]
-
-![](README_files/figure-gfm/unnamed-chunk-60-7.png)<!-- -->
-
-    ## 
-    ## [[2]]
-
-![](README_files/figure-gfm/unnamed-chunk-60-8.png)<!-- -->
-
-    ## 
-    ## [[3]]
-
-![](README_files/figure-gfm/unnamed-chunk-60-9.png)<!-- -->
-
-    ## 
-    ## [[4]]
-
-![](README_files/figure-gfm/unnamed-chunk-60-10.png)<!-- -->
-
-    ## 
-    ## [[5]]
-
-![](README_files/figure-gfm/unnamed-chunk-60-11.png)<!-- -->
-
-``` r
 map(estados,my_plot_map_beta,.variable="beta_sif")
 ```
 
-    ## [[1]]
-
-![](README_files/figure-gfm/unnamed-chunk-60-12.png)<!-- -->
-
-    ## 
-    ## [[2]]
-
-![](README_files/figure-gfm/unnamed-chunk-60-13.png)<!-- -->
-
-    ## 
-    ## [[3]]
-
-![](README_files/figure-gfm/unnamed-chunk-60-14.png)<!-- -->
-
-    ## 
-    ## [[4]]
-
-![](README_files/figure-gfm/unnamed-chunk-60-15.png)<!-- -->
-
-    ## 
-    ## [[5]]
-
-![](README_files/figure-gfm/unnamed-chunk-60-16.png)<!-- --> \#
-Incorporação dos dados do CT
+# Incorporação dos dados do CT
 
 ## IMPORTANDO A BASE DE DADOS
 
@@ -1945,7 +1285,7 @@ emissions_sources <- read_rds('data/emissions_sources.rds')
 ```
 
 ``` r
-city_kgr_beta_emission <- city_kgr_beta |> 
+city_kgr_beta_emission <- city_kgr_beta |>
   left_join(
     emissions_sources |>
       filter(year == 2020,                 #%in% 2015:2022
@@ -1956,7 +1296,7 @@ city_kgr_beta_emission <- city_kgr_beta |>
       group_by(city_ref, sigla_uf)  |>
       summarise(emissions_quantity =
                   sum(emissions_quantity, na.rm = TRUE)) |>
-      rename(abbrev_state = sigla_uf,name_muni =city_ref) |> 
+      rename(abbrev_state = sigla_uf,name_muni =city_ref) |>
       ungroup(),
     by=c("name_muni","abbrev_state")
   )
@@ -1997,11 +1337,6 @@ emissions_sources |>
     ) |>
   arrange(- emission_total)
 ```
-
-    ## # A tibble: 1 × 3
-    ##   sigla_uf emission_total mean_head
-    ##   <chr>             <dbl>     <dbl>
-    ## 1 GO                 36.8      1.51
 
 ## CRIANDO TEMA GRAFICO
 
@@ -2078,33 +1413,7 @@ my_plot_map <- function(.estados){
 }
 
 map(estados,my_plot_map)
-```
 
-    ## [[1]]
-
-![](README_files/figure-gfm/unnamed-chunk-65-1.png)<!-- -->
-
-    ## 
-    ## [[2]]
-
-![](README_files/figure-gfm/unnamed-chunk-65-2.png)<!-- -->
-
-    ## 
-    ## [[3]]
-
-![](README_files/figure-gfm/unnamed-chunk-65-3.png)<!-- -->
-
-    ## 
-    ## [[4]]
-
-![](README_files/figure-gfm/unnamed-chunk-65-4.png)<!-- -->
-
-    ## 
-    ## [[5]]
-
-![](README_files/figure-gfm/unnamed-chunk-65-5.png)<!-- -->
-
-``` r
 # ggsave('GO.png', dpi = 3000, width = 9, height = 5.5)
 ```
 
@@ -2160,10 +1469,7 @@ map(estados,my_plot_map)
 
 
 #Gerando os mapas em uma única figura
-
-
-
- left_join(citys |> filter(abbrev_state %in% estados),
+left_join(citys |> filter(abbrev_state %in% estados),
            emissions_sources |>
              filter(year == 2020,                 #%in% 2015:2022
                     sigla_uf %in% estados,
@@ -2206,11 +1512,7 @@ map(estados,my_plot_map)
          x = 'Longitude',
          y = 'Latitude') +
      scale_fill_viridis_d()
-```
 
-![](README_files/figure-gfm/unnamed-chunk-66-1.png)<!-- -->
-
-``` r
  # ggsave('Maps_states_red.png')
  ggsave('mapa_nova_classe.png')
 ```
@@ -2219,281 +1521,18 @@ map(estados,my_plot_map)
 
 ``` r
 my_corrplot <- function(.estado){
-  pl<- city_kgr_beta_emission |> 
+  pl<- city_kgr_beta_emission |>
     as_data_frame() |>
-    filter(abbrev_state == .estado) |> 
-    select(beta_sif:emissions_quantity) |> 
-    relocate(emissions_quantity) |> 
-    drop_na() |> 
-    cor(method = "spearman") |> 
+    filter(abbrev_state == .estado) |>
+    select(beta_sif:emissions_quantity) |>
+    relocate(emissions_quantity) |>
+    drop_na() |>
+    cor(method = "spearman") |>
     corrplot::corrplot(method = "ellipse",type = "upper" )
   print(pl)
 }
-map(estados,my_corrplot)
+# map(estados,my_corrplot)
 ```
-
-![](README_files/figure-gfm/unnamed-chunk-67-1.png)<!-- -->
-
-    ## $corr
-    ##                    emissions_quantity    beta_sif  beta_xch4  beta_xco2
-    ## emissions_quantity         1.00000000  0.09227685  0.1042183  0.1116938
-    ## beta_sif                   0.09227685  1.00000000  0.4444834 -0.2416790
-    ## beta_xch4                  0.10421832  0.44448337  1.0000000 -0.3589533
-    ## beta_xco2                  0.11169384 -0.24167901 -0.3589533  1.0000000
-    ## 
-    ## $corrPos
-    ##                 xName              yName x y        corr
-    ## 1  emissions_quantity emissions_quantity 1 4  1.00000000
-    ## 2            beta_sif emissions_quantity 2 4  0.09227685
-    ## 3            beta_sif           beta_sif 2 3  1.00000000
-    ## 4           beta_xch4 emissions_quantity 3 4  0.10421832
-    ## 5           beta_xch4           beta_sif 3 3  0.44448337
-    ## 6           beta_xch4          beta_xch4 3 2  1.00000000
-    ## 7           beta_xco2 emissions_quantity 4 4  0.11169384
-    ## 8           beta_xco2           beta_sif 4 3 -0.24167901
-    ## 9           beta_xco2          beta_xch4 4 2 -0.35895333
-    ## 10          beta_xco2          beta_xco2 4 1  1.00000000
-    ## 
-    ## $arg
-    ## $arg$type
-    ## [1] "upper"
-
-![](README_files/figure-gfm/unnamed-chunk-67-2.png)<!-- -->
-
-    ## $corr
-    ##                    emissions_quantity    beta_sif  beta_xch4   beta_xco2
-    ## emissions_quantity         1.00000000 -0.08766482 -0.1350594 -0.08443288
-    ## beta_sif                  -0.08766482  1.00000000  0.2824124  0.04865846
-    ## beta_xch4                 -0.13505937  0.28241237  1.0000000  0.11557149
-    ## beta_xco2                 -0.08443288  0.04865846  0.1155715  1.00000000
-    ## 
-    ## $corrPos
-    ##                 xName              yName x y        corr
-    ## 1  emissions_quantity emissions_quantity 1 4  1.00000000
-    ## 2            beta_sif emissions_quantity 2 4 -0.08766482
-    ## 3            beta_sif           beta_sif 2 3  1.00000000
-    ## 4           beta_xch4 emissions_quantity 3 4 -0.13505937
-    ## 5           beta_xch4           beta_sif 3 3  0.28241237
-    ## 6           beta_xch4          beta_xch4 3 2  1.00000000
-    ## 7           beta_xco2 emissions_quantity 4 4 -0.08443288
-    ## 8           beta_xco2           beta_sif 4 3  0.04865846
-    ## 9           beta_xco2          beta_xch4 4 2  0.11557149
-    ## 10          beta_xco2          beta_xco2 4 1  1.00000000
-    ## 
-    ## $arg
-    ## $arg$type
-    ## [1] "upper"
-
-![](README_files/figure-gfm/unnamed-chunk-67-3.png)<!-- -->
-
-    ## $corr
-    ##                    emissions_quantity    beta_sif  beta_xch4   beta_xco2
-    ## emissions_quantity          1.0000000 -0.10998852 -0.5746164  0.13324288
-    ## beta_sif                   -0.1099885  1.00000000  0.1056883  0.06848972
-    ## beta_xch4                  -0.5746164  0.10568834  1.0000000 -0.18835195
-    ## beta_xco2                   0.1332429  0.06848972 -0.1883519  1.00000000
-    ## 
-    ## $corrPos
-    ##                 xName              yName x y        corr
-    ## 1  emissions_quantity emissions_quantity 1 4  1.00000000
-    ## 2            beta_sif emissions_quantity 2 4 -0.10998852
-    ## 3            beta_sif           beta_sif 2 3  1.00000000
-    ## 4           beta_xch4 emissions_quantity 3 4 -0.57461643
-    ## 5           beta_xch4           beta_sif 3 3  0.10568834
-    ## 6           beta_xch4          beta_xch4 3 2  1.00000000
-    ## 7           beta_xco2 emissions_quantity 4 4  0.13324288
-    ## 8           beta_xco2           beta_sif 4 3  0.06848972
-    ## 9           beta_xco2          beta_xch4 4 2 -0.18835195
-    ## 10          beta_xco2          beta_xco2 4 1  1.00000000
-    ## 
-    ## $arg
-    ## $arg$type
-    ## [1] "upper"
-
-![](README_files/figure-gfm/unnamed-chunk-67-4.png)<!-- -->
-
-    ## $corr
-    ##                    emissions_quantity    beta_sif   beta_xch4    beta_xco2
-    ## emissions_quantity        1.000000000 -0.12279757 -0.15901118  0.009793046
-    ## beta_sif                 -0.122797572  1.00000000  0.04591749 -0.145547135
-    ## beta_xch4                -0.159011179  0.04591749  1.00000000 -0.087465279
-    ## beta_xco2                 0.009793046 -0.14554713 -0.08746528  1.000000000
-    ## 
-    ## $corrPos
-    ##                 xName              yName x y         corr
-    ## 1  emissions_quantity emissions_quantity 1 4  1.000000000
-    ## 2            beta_sif emissions_quantity 2 4 -0.122797572
-    ## 3            beta_sif           beta_sif 2 3  1.000000000
-    ## 4           beta_xch4 emissions_quantity 3 4 -0.159011179
-    ## 5           beta_xch4           beta_sif 3 3  0.045917493
-    ## 6           beta_xch4          beta_xch4 3 2  1.000000000
-    ## 7           beta_xco2 emissions_quantity 4 4  0.009793046
-    ## 8           beta_xco2           beta_sif 4 3 -0.145547135
-    ## 9           beta_xco2          beta_xch4 4 2 -0.087465279
-    ## 10          beta_xco2          beta_xco2 4 1  1.000000000
-    ## 
-    ## $arg
-    ## $arg$type
-    ## [1] "upper"
-
-![](README_files/figure-gfm/unnamed-chunk-67-5.png)<!-- -->
-
-    ## $corr
-    ##                    emissions_quantity   beta_sif   beta_xch4   beta_xco2
-    ## emissions_quantity         1.00000000 -0.2509624  0.34834898 -0.04646986
-    ## beta_sif                  -0.25096240  1.0000000 -0.24474686  0.19587754
-    ## beta_xch4                  0.34834898 -0.2447469  1.00000000  0.06893047
-    ## beta_xco2                 -0.04646986  0.1958775  0.06893047  1.00000000
-    ## 
-    ## $corrPos
-    ##                 xName              yName x y        corr
-    ## 1  emissions_quantity emissions_quantity 1 4  1.00000000
-    ## 2            beta_sif emissions_quantity 2 4 -0.25096240
-    ## 3            beta_sif           beta_sif 2 3  1.00000000
-    ## 4           beta_xch4 emissions_quantity 3 4  0.34834898
-    ## 5           beta_xch4           beta_sif 3 3 -0.24474686
-    ## 6           beta_xch4          beta_xch4 3 2  1.00000000
-    ## 7           beta_xco2 emissions_quantity 4 4 -0.04646986
-    ## 8           beta_xco2           beta_sif 4 3  0.19587754
-    ## 9           beta_xco2          beta_xch4 4 2  0.06893047
-    ## 10          beta_xco2          beta_xco2 4 1  1.00000000
-    ## 
-    ## $arg
-    ## $arg$type
-    ## [1] "upper"
-
-    ## [[1]]
-    ## [[1]]$corr
-    ##                    emissions_quantity    beta_sif  beta_xch4  beta_xco2
-    ## emissions_quantity         1.00000000  0.09227685  0.1042183  0.1116938
-    ## beta_sif                   0.09227685  1.00000000  0.4444834 -0.2416790
-    ## beta_xch4                  0.10421832  0.44448337  1.0000000 -0.3589533
-    ## beta_xco2                  0.11169384 -0.24167901 -0.3589533  1.0000000
-    ## 
-    ## [[1]]$corrPos
-    ##                 xName              yName x y        corr
-    ## 1  emissions_quantity emissions_quantity 1 4  1.00000000
-    ## 2            beta_sif emissions_quantity 2 4  0.09227685
-    ## 3            beta_sif           beta_sif 2 3  1.00000000
-    ## 4           beta_xch4 emissions_quantity 3 4  0.10421832
-    ## 5           beta_xch4           beta_sif 3 3  0.44448337
-    ## 6           beta_xch4          beta_xch4 3 2  1.00000000
-    ## 7           beta_xco2 emissions_quantity 4 4  0.11169384
-    ## 8           beta_xco2           beta_sif 4 3 -0.24167901
-    ## 9           beta_xco2          beta_xch4 4 2 -0.35895333
-    ## 10          beta_xco2          beta_xco2 4 1  1.00000000
-    ## 
-    ## [[1]]$arg
-    ## [[1]]$arg$type
-    ## [1] "upper"
-    ## 
-    ## 
-    ## 
-    ## [[2]]
-    ## [[2]]$corr
-    ##                    emissions_quantity    beta_sif  beta_xch4   beta_xco2
-    ## emissions_quantity         1.00000000 -0.08766482 -0.1350594 -0.08443288
-    ## beta_sif                  -0.08766482  1.00000000  0.2824124  0.04865846
-    ## beta_xch4                 -0.13505937  0.28241237  1.0000000  0.11557149
-    ## beta_xco2                 -0.08443288  0.04865846  0.1155715  1.00000000
-    ## 
-    ## [[2]]$corrPos
-    ##                 xName              yName x y        corr
-    ## 1  emissions_quantity emissions_quantity 1 4  1.00000000
-    ## 2            beta_sif emissions_quantity 2 4 -0.08766482
-    ## 3            beta_sif           beta_sif 2 3  1.00000000
-    ## 4           beta_xch4 emissions_quantity 3 4 -0.13505937
-    ## 5           beta_xch4           beta_sif 3 3  0.28241237
-    ## 6           beta_xch4          beta_xch4 3 2  1.00000000
-    ## 7           beta_xco2 emissions_quantity 4 4 -0.08443288
-    ## 8           beta_xco2           beta_sif 4 3  0.04865846
-    ## 9           beta_xco2          beta_xch4 4 2  0.11557149
-    ## 10          beta_xco2          beta_xco2 4 1  1.00000000
-    ## 
-    ## [[2]]$arg
-    ## [[2]]$arg$type
-    ## [1] "upper"
-    ## 
-    ## 
-    ## 
-    ## [[3]]
-    ## [[3]]$corr
-    ##                    emissions_quantity    beta_sif  beta_xch4   beta_xco2
-    ## emissions_quantity          1.0000000 -0.10998852 -0.5746164  0.13324288
-    ## beta_sif                   -0.1099885  1.00000000  0.1056883  0.06848972
-    ## beta_xch4                  -0.5746164  0.10568834  1.0000000 -0.18835195
-    ## beta_xco2                   0.1332429  0.06848972 -0.1883519  1.00000000
-    ## 
-    ## [[3]]$corrPos
-    ##                 xName              yName x y        corr
-    ## 1  emissions_quantity emissions_quantity 1 4  1.00000000
-    ## 2            beta_sif emissions_quantity 2 4 -0.10998852
-    ## 3            beta_sif           beta_sif 2 3  1.00000000
-    ## 4           beta_xch4 emissions_quantity 3 4 -0.57461643
-    ## 5           beta_xch4           beta_sif 3 3  0.10568834
-    ## 6           beta_xch4          beta_xch4 3 2  1.00000000
-    ## 7           beta_xco2 emissions_quantity 4 4  0.13324288
-    ## 8           beta_xco2           beta_sif 4 3  0.06848972
-    ## 9           beta_xco2          beta_xch4 4 2 -0.18835195
-    ## 10          beta_xco2          beta_xco2 4 1  1.00000000
-    ## 
-    ## [[3]]$arg
-    ## [[3]]$arg$type
-    ## [1] "upper"
-    ## 
-    ## 
-    ## 
-    ## [[4]]
-    ## [[4]]$corr
-    ##                    emissions_quantity    beta_sif   beta_xch4    beta_xco2
-    ## emissions_quantity        1.000000000 -0.12279757 -0.15901118  0.009793046
-    ## beta_sif                 -0.122797572  1.00000000  0.04591749 -0.145547135
-    ## beta_xch4                -0.159011179  0.04591749  1.00000000 -0.087465279
-    ## beta_xco2                 0.009793046 -0.14554713 -0.08746528  1.000000000
-    ## 
-    ## [[4]]$corrPos
-    ##                 xName              yName x y         corr
-    ## 1  emissions_quantity emissions_quantity 1 4  1.000000000
-    ## 2            beta_sif emissions_quantity 2 4 -0.122797572
-    ## 3            beta_sif           beta_sif 2 3  1.000000000
-    ## 4           beta_xch4 emissions_quantity 3 4 -0.159011179
-    ## 5           beta_xch4           beta_sif 3 3  0.045917493
-    ## 6           beta_xch4          beta_xch4 3 2  1.000000000
-    ## 7           beta_xco2 emissions_quantity 4 4  0.009793046
-    ## 8           beta_xco2           beta_sif 4 3 -0.145547135
-    ## 9           beta_xco2          beta_xch4 4 2 -0.087465279
-    ## 10          beta_xco2          beta_xco2 4 1  1.000000000
-    ## 
-    ## [[4]]$arg
-    ## [[4]]$arg$type
-    ## [1] "upper"
-    ## 
-    ## 
-    ## 
-    ## [[5]]
-    ## [[5]]$corr
-    ##                    emissions_quantity   beta_sif   beta_xch4   beta_xco2
-    ## emissions_quantity         1.00000000 -0.2509624  0.34834898 -0.04646986
-    ## beta_sif                  -0.25096240  1.0000000 -0.24474686  0.19587754
-    ## beta_xch4                  0.34834898 -0.2447469  1.00000000  0.06893047
-    ## beta_xco2                 -0.04646986  0.1958775  0.06893047  1.00000000
-    ## 
-    ## [[5]]$corrPos
-    ##                 xName              yName x y        corr
-    ## 1  emissions_quantity emissions_quantity 1 4  1.00000000
-    ## 2            beta_sif emissions_quantity 2 4 -0.25096240
-    ## 3            beta_sif           beta_sif 2 3  1.00000000
-    ## 4           beta_xch4 emissions_quantity 3 4  0.34834898
-    ## 5           beta_xch4           beta_sif 3 3 -0.24474686
-    ## 6           beta_xch4          beta_xch4 3 2  1.00000000
-    ## 7           beta_xco2 emissions_quantity 4 4 -0.04646986
-    ## 8           beta_xco2           beta_sif 4 3  0.19587754
-    ## 9           beta_xco2          beta_xch4 4 2  0.06893047
-    ## 10          beta_xco2          beta_xco2 4 1  1.00000000
-    ## 
-    ## [[5]]$arg
-    ## [[5]]$arg$type
-    ## [1] "upper"
 
 ### Verificando maiores cidades emissoras
 
@@ -2519,23 +1558,6 @@ emissions_sources |>
                          # 'manure-left-on-pasture-cattle'),
          city_ref == 'São Félix Do Xingu'                       #change the municipality here
           ) #|>
-```
-
-    ## # A tibble: 3 × 32
-    ##   source_id source_name        source_type iso3_country original_inventory_sec…¹
-    ##       <int> <chr>              <chr>       <chr>        <chr>                   
-    ## 1  10844136 São Félix do Xingu <NA>        BRA          cropland-fires          
-    ## 2  21122398 São Félix do Xingu <NA>        BRA          enteric-fermentation-ca…
-    ## 3  20395095 São Félix do Xingu <NA>        BRA          manure-left-on-pasture-…
-    ## # ℹ abbreviated name: ¹​original_inventory_sector
-    ## # ℹ 27 more variables: start_time <date>, end_time <date>, lat <dbl>,
-    ## #   lon <dbl>, geometry_ref <chr>, gas <chr>, emissions_quantity <dbl>,
-    ## #   temporal_granularity <chr>, created_date <date>, modified_date <date>,
-    ## #   directory <chr>, activity <dbl>, activity_units <chr>,
-    ## #   emissions_factor <dbl>, emissions_factor_units <chr>, capacity <dbl>,
-    ## #   capacity_units <chr>, capacity_factor <dbl>, year <dbl>, …
-
-``` r
   # group_by(sub_sector, sector_name) |>
   # summarise(
   #    emission = sum(emissions_quantity, na.rm = T)
@@ -2603,11 +1625,7 @@ emissions_sources |>
            y=1,
            label = ".",
            size=0.1)
-```
 
-![](README_files/figure-gfm/unnamed-chunk-69-1.png)<!-- -->
-
-``` r
 ggsave('top3cidades_emissão_states.png')
 ```
 
@@ -2678,33 +1696,7 @@ my_plot_col_states <- function(.estados){
   #           label = 'emission')
 
 map(estados,my_plot_col_states)
-```
 
-    ## [[1]]
-
-![](README_files/figure-gfm/unnamed-chunk-70-1.png)<!-- -->
-
-    ## 
-    ## [[2]]
-
-![](README_files/figure-gfm/unnamed-chunk-70-2.png)<!-- -->
-
-    ## 
-    ## [[3]]
-
-![](README_files/figure-gfm/unnamed-chunk-70-3.png)<!-- -->
-
-    ## 
-    ## [[4]]
-
-![](README_files/figure-gfm/unnamed-chunk-70-4.png)<!-- -->
-
-    ## 
-    ## [[5]]
-
-![](README_files/figure-gfm/unnamed-chunk-70-5.png)<!-- -->
-
-``` r
 # ggsave('MG_legenda_setor_agr.png', dpi = 3000)
 ```
 
@@ -2767,11 +1759,6 @@ map(estados,my_plot_col_states)
            y=1,
            label = ".",
            size=0.1)
-```
-
-![](README_files/figure-gfm/unnamed-chunk-71-1.png)<!-- -->
-
-``` r
 # }
 
 # map(estados,my_plot_subsector_states)
@@ -2859,11 +1846,7 @@ emissions_sources |>
   map(my_theme,my_theme_add) +
   theme(legend.position = 'top') +
   scale_fill_viridis_d(option = 'plasma')
-```
 
-![](README_files/figure-gfm/unnamed-chunk-73-1.png)<!-- -->
-
-``` r
 # ggsave('States_emission.png')
 ```
 
@@ -2883,15 +1866,6 @@ emissions_sources |>
     ) |>
   arrange(- soma_emissao)
 ```
-
-    ## # A tibble: 5 × 2
-    ##   sigla_uf soma_emissao
-    ##   <chr>           <dbl>
-    ## 1 MG          48858351.
-    ## 2 MS          43401571.
-    ## 3 MT          40707951.
-    ## 4 GO          36818760.
-    ## 5 PA          13588943.
 
 ## SERIE TEMPORAL, 2015 A 2022
 
@@ -2941,10 +1915,6 @@ emissions_sources |>
        y = 'Emissão total',
        fill="") +
   scale_fill_viridis_d()
-```
 
-![](README_files/figure-gfm/unnamed-chunk-75-1.png)<!-- -->
-
-``` r
 ggsave('TemporalEmissions-states.png')
 ```
