@@ -65,6 +65,7 @@ data_set |>
 ```{r}
 mod_trend_xco2 <- lm(xco2~year, 
           data= data_set |> 
+            mutate(year = year - min(year)) |> 
             drop_na())
 mod_trend_xco2
 ```
@@ -514,6 +515,7 @@ data_set |>
 ```{r}
 mod_trend_xch4<- lm(xch4 ~ year, 
           data= data_set |> 
+            mutate(year = year- min(year)) |> 
             drop_na())
 ```
 
@@ -1113,14 +1115,17 @@ glimpse(kgr_maps)
 kgr_maps_detrend <- kgr_maps |>
   group_by(variable) |>
   mutate(
-    value_est = ifelse(variable =="xco2",a_co2+b_co2*year,
-                       ifelse(variable =="xch4",a_ch4+b_ch4*year,value)),
+    value_est = ifelse(variable =="xco2",a_co2+b_co2*(year-min(year)),
+                       ifelse(variable =="xch4",a_ch4+b_ch4*(year-min(year)),value)),
     delta = ifelse(variable =="sif",value,value_est-value),
     value_detrend = ifelse(variable =="xco2",(a_co2-delta)-(mean(value)-a_co2),
                        ifelse(variable =="xch4",(a_ch4-delta)-(mean(value)-a_ch4),value)),
     value = value_detrend
   ) |> ungroup() |>
   select(-value_est,-delta,-value_detrend)
+
+kgr_maps_detrend |> 
+  filter(variable == "xco2")
 ```
 
 ## Cálculo do Beta para cada municípios
@@ -1132,6 +1137,11 @@ kgr_maps_detrend <- kgr_maps_detrend |>
         state = ifelse(state == "DF","GO",state)
       ),
   by=c("state","X","Y")
+  ) |> 
+  group_by(variable, state, year) |> 
+  mutate(
+    ref_mean = mean(value, na.rm = TRUE),
+    anomaly = value - ref_mean
   )
 ```
 
@@ -1141,11 +1151,14 @@ kgr_maps_nested <- kgr_maps_detrend |>
   group_by(variable,state,city,year) |>
   summarise(
     media = mean(value,na.rm = TRUE),
-    desv_pad = mean(value_std)
+    desv_pad = mean(value_std),
+    anomaly = mean(anomaly, na.rm = TRUE)
   ) |>
   group_by(variable,state,city) |>
   nest() |>
   ungroup()
+
+kgr_maps_nested$data[[1]]
 
 get_reg_lin <- function(df, par_return = "beta"){
   x <- df$year
@@ -1155,9 +1168,16 @@ get_reg_lin <- function(df, par_return = "beta"){
   if(par_return == "beta") return(value)
 }
 
+mean_anomaly <- function(df){
+  x <- df$anomaly
+  value <- mean(x, na.rm = TRUE)
+  return(value)
+}
+
 kgr_maps_beta <- kgr_maps_nested |>
   mutate(
-    beta = map(data,get_reg_lin)
+    beta = map(data,get_reg_lin),
+    anomaly = map(data, mean_anomaly)
   ) |>
   select(-data) |>
   unnest()
@@ -1175,8 +1195,7 @@ city_kgr_beta <- left_join(
   kgr_maps_beta |>
     pivot_wider(
       names_from = variable,
-      values_from = beta,
-      names_prefix = "beta_") |>
+      values_from = c(beta,anomaly)) |>
     rename(abbrev_state = state,name_muni =city),
            by=c("abbrev_state","name_muni"))
 ```
@@ -1207,6 +1226,35 @@ city_kgr_beta |>
          y = 'Latitude') +
      scale_fill_viridis_c(option = "inferno")
 ```
+
+
+```{r}
+city_kgr_beta |>
+     ggplot() +
+     geom_sf(aes(fill=anomaly_sif), color="transparent",
+             size=.05, show.legend = TRUE)  +
+   geom_sf(data=mapas_contorno1, fill="transparent", color="red", size=3, show.legend = FALSE) +
+   geom_sf(data=mapas_contorno2, fill="transparent", color="red", size=3, show.legend = FALSE) +
+   geom_sf(data=mapas_contorno3, fill="transparent", color="red", size=3, show.legend = FALSE) +
+   geom_sf(data=mapas_contorno4, fill="transparent", color="red", size=3, show.legend = FALSE) +
+   geom_sf(data=mapas_contorno5, fill="transparent", color="red", size=3, show.legend = FALSE) +
+     theme_bw() +
+   theme(
+     axis.text.x = element_text(size = rel(.9), color = "black"),
+     axis.title.x = element_text(size = rel(1.1), color = "black"),
+     axis.text.y = element_text(size = rel(.9), color = "black"),
+     axis.title.y = element_text(size = rel(1.1), color = "black"),
+     legend.text = element_text(size = rel(1), color = "black"),
+     legend.title = element_text(face = 'bold', size = rel(1.2)),
+     legend.position = c(1.29, .5)
+     ) +
+   labs(fill = 'Anomaly_sif',
+         x = 'Longitude',
+         y = 'Latitude') +
+     scale_fill_viridis_c(option = "mako")
+```
+
+
 ```{r}
 city_kgr_beta |>
      ggplot() +
@@ -1232,6 +1280,34 @@ city_kgr_beta |>
          y = 'Latitude') +
      scale_fill_viridis_c(option = "inferno")
 ```
+
+```{r}
+city_kgr_beta |>
+     ggplot() +
+     geom_sf(aes(fill=anomaly_xch4), color="transparent",
+             size=.05, show.legend = TRUE)  +
+   geom_sf(data=mapas_contorno1, fill="transparent", color="red", size=3, show.legend = FALSE) +
+   geom_sf(data=mapas_contorno2, fill="transparent", color="red", size=3, show.legend = FALSE) +
+   geom_sf(data=mapas_contorno3, fill="transparent", color="red", size=3, show.legend = FALSE) +
+   geom_sf(data=mapas_contorno4, fill="transparent", color="red", size=3, show.legend = FALSE) +
+   geom_sf(data=mapas_contorno5, fill="transparent", color="red", size=3, show.legend = FALSE) +
+     theme_bw() +
+   theme(
+     axis.text.x = element_text(size = rel(.9), color = "black"),
+     axis.title.x = element_text(size = rel(1.1), color = "black"),
+     axis.text.y = element_text(size = rel(.9), color = "black"),
+     axis.title.y = element_text(size = rel(1.1), color = "black"),
+     legend.text = element_text(size = rel(1), color = "black"),
+     legend.title = element_text(face = 'bold', size = rel(1.2)),
+     legend.position = c(1.29, .5)
+     ) +
+   labs(fill = 'Anomaly_xch4',
+         x = 'Longitude',
+         y = 'Latitude') +
+     scale_fill_viridis_c(option = "mako")
+```
+
+
 ```{r}
 city_kgr_beta |>
      ggplot() +
@@ -1258,10 +1334,36 @@ city_kgr_beta |>
      scale_fill_viridis_c(option = "inferno")
 ```
 
+```{r}
+city_kgr_beta |>
+     ggplot() +
+     geom_sf(aes(fill=anomaly_xco2), color="transparent",
+             size=.05, show.legend = TRUE)  +
+   geom_sf(data=mapas_contorno1, fill="transparent", color="red", size=3, show.legend = FALSE) +
+   geom_sf(data=mapas_contorno2, fill="transparent", color="red", size=3, show.legend = FALSE) +
+   geom_sf(data=mapas_contorno3, fill="transparent", color="red", size=3, show.legend = FALSE) +
+   geom_sf(data=mapas_contorno4, fill="transparent", color="red", size=3, show.legend = FALSE) +
+   geom_sf(data=mapas_contorno5, fill="transparent", color="red", size=3, show.legend = FALSE) +
+     theme_bw() +
+   theme(
+     axis.text.x = element_text(size = rel(.9), color = "black"),
+     axis.title.x = element_text(size = rel(1.1), color = "black"),
+     axis.text.y = element_text(size = rel(.9), color = "black"),
+     axis.title.y = element_text(size = rel(1.1), color = "black"),
+     legend.text = element_text(size = rel(1), color = "black"),
+     legend.title = element_text(face = 'bold', size = rel(1.2)),
+     legend.position = c(1.29, .5)
+     ) +
+   labs(fill = 'Anomaly_xco2',
+         x = 'Longitude',
+         y = 'Latitude') +
+     scale_fill_viridis_c(option = "mako")
+```
+
 ## Inspeção por estado
 
 ```{r}
-variables <- c("beta_sif","beta_xch4","beta_xco2")
+variables <- c("beta_sif","beta_xch4","beta_xco2","anomaly_sif","anomaly_xch4","anomaly_xco2")
 my_plot_map_beta <- function(.estado, .variable){
   city_kgr_beta |>
     filter(abbrev_state == .estado) |>
@@ -1286,8 +1388,11 @@ my_plot_map_beta <- function(.estado, .variable){
 my_plot_map_beta("GO", "beta_xch4")
 
 map(estados[-6],my_plot_map_beta,.variable="beta_xco2")
+map(estados[-6],my_plot_map_beta,.variable="anomaly_xco2")
 map(estados[-6],my_plot_map_beta,.variable="beta_xch4")
+map(estados[-6],my_plot_map_beta,.variable="anomaly_xch4")
 map(estados[-6],my_plot_map_beta,.variable="beta_sif")
+map(estados[-6],my_plot_map_beta,.variable="anomaly_sif")
 ```
 # Incorporação dos dados do CT
 
