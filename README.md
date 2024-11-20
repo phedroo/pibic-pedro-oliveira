@@ -296,12 +296,12 @@ citys |>
 
 ``` r
 my_year = 2020
-my_state = "GO"
+my_state = estados
 grid <- grid_geral |> 
   mutate(
     state = ifelse(state == "DF","GO",state)
       ) |> 
-  filter(state == my_state) |> 
+  filter(state %in% my_state) |> 
   select(X, Y)
 sp::gridded(grid) = ~ X + Y
 # plot(grid$X,grid$Y,col="red",pch=4)
@@ -311,16 +311,37 @@ sp::gridded(grid) = ~ X + Y
 
 ``` r
 dist_agg <- .15 #Distância entre pontos
-grid_agg <- expand.grid(
+# grid_agg <- expand.grid(
+#   X=seq(min(x),max(x),dist_agg), 
+#   Y=seq(min(y),max(y),dist_agg)) |>
+#   mutate(
+#     flag_my_state = my_state,
+#     flag_st = def_pol(X, Y, list_pol[[my_state]]),
+#     flag_df = def_pol(X, Y, list_pol[["DF"]]),
+#     flag = ifelse(flag_my_state == "GO", (flag_st|flag_df),flag_st)
+#   ) |>  filter(flag) |>
+#   dplyr::select(-starts_with("flag"))
+
+grid_agg_new <- expand.grid(
   X=seq(min(x),max(x),dist_agg), 
-  Y=seq(min(y),max(y),dist_agg)) |>
-  mutate(
-    flag_my_state = my_state,
-    flag_st = def_pol(X, Y, list_pol[[my_state]]),
-    flag_df = def_pol(X, Y, list_pol[["DF"]]),
-    flag = ifelse(flag_my_state == "GO", (flag_st|flag_df),flag_st)
-  ) |>  filter(flag) |>
-  dplyr::select(-starts_with("flag"))
+  Y=seq(min(y),max(y),dist_agg))
+
+X_grid_agg_new <- grid_agg_new$X
+Y_grid_agg_new <- grid_agg_new$Y
+vec_state <- 0
+for(i in 1:nrow(grid_agg_new)){
+  vec_state[i] <- "Other"
+  for(j in seq_along(my_state)){
+    lg_v <- def_pol(X_grid_agg_new[i], 
+                    Y_grid_agg_new[i], 
+                    list_pol[[my_state[j]]])
+    if(lg_v) vec_state[i] <- my_state[j]
+  }  
+}
+
+grid_agg <- grid_agg_new |> 
+  add_column(state = vec_state) |> 
+  filter(state != "Other")
 ```
 
 ``` r
@@ -328,7 +349,7 @@ grid_agg <- expand.grid(
 data_set_aux  <- data_set_me |>
   filter(
     year == my_year,
-    state == my_state) |>
+    state %in% my_state) |>
   dplyr::select(longitude, latitude, xco2)
 ```
 
@@ -379,8 +400,8 @@ form <- xco2 ~ 1
 # Criando o Semivariograma Experimental.
 vari_exp <- gstat::variogram(form, data = data_set_aux,
                       cressie = FALSE,
-                      cutoff = 4, # distância máxima do semivariograma
-                      width = .2) # distancia entre pontos
+                      cutoff = 12, # distância máxima do semivariograma
+                      width = .25) # distancia entre pontos
 vari_exp  |>
   ggplot(aes(x=dist, y=gamma)) +
   geom_point() +
@@ -454,7 +475,7 @@ plot(vari_exp,model=modelo_3, col=1,pl=F,pch=16,cex=1.2,cex.main=7,ylab=list("Se
 # LOOCV - Leave one out cross validation
 conjunto_validacao <- data_set_aux |>
   as_tibble() |>
-  sample_n(50)
+  sample_n(250)
 sp::coordinates(conjunto_validacao) = ~longitude + latitude
 modelos<-list(modelo_1,modelo_2,modelo_3)
 for(j in 1:3){
@@ -477,6 +498,206 @@ for(j in 1:3){
 }
 ```
 
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
     ## [using ordinary kriging]
     ## [using ordinary kriging]
     ## [using ordinary kriging]
@@ -580,9 +801,409 @@ for(j in 1:3){
     ## [using ordinary kriging]
     ## [using ordinary kriging]
     ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
 
 ![](README_files/figure-gfm/unnamed-chunk-17-2.png)<!-- -->
 
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
     ## [using ordinary kriging]
     ## [using ordinary kriging]
     ## [using ordinary kriging]
@@ -639,7 +1260,7 @@ for(j in 1:3){
 ##### Passo 5 - Selecionado o melhor modelo, vamos guardá-lo
 
 ``` r
-modelo <- modelo_2 ## sempre modificar
+modelo <- modelo_1 ## sempre modificar
 # Salvando os parâmetros dos melhores modelo
 model <- modelo |> slice(2) |> pull(model)
 rss <- round(attr(modelo, "SSErr"),4) 
@@ -655,13 +1276,17 @@ tibble(
   my_state, my_year, model, c0, c0_c1, a, rss, r2
 ) |> mutate(gde = c0/c0_c1, .after = "a") |>
   rename(state=my_state,year=my_year) |> 
-  write_csv(paste0("output/best-fit/",my_state,"-",my_year,"-xco2.csv"))
+  write_csv(paste0("output/best-fit/",paste(my_state,
+                                            collapse = "_"), 
+                   "-",my_year,"-xco2.csv"))
 
 ls_csv <- list.files("output/best-fit/",full.names = TRUE,pattern = "-xco2.csv")
 map_df(ls_csv, read_csv) |> 
   writexl::write_xlsx("output/semivariogram-models-xco2.xlsx")
 png(filename = paste0("output/semivariogram-img/semivar-xco2-",
-                      my_state,"-",my_year,".png"),
+                      paste(my_state,
+                      collapse = "_"),
+                      "-",my_year,".png"),
     width = 800, height = 600)
 plot(vari_exp,model=modelo,cex.lab=2, col=1,pl=F,pch=16,cex=2.2,ylab=list("Semivariância",cex=2.3),xlab=list("Distância de Separação h (m)",cex=2.3,cex.axis=4))
 dev.off()
@@ -694,11 +1319,15 @@ dev.off()
 #        fill="xco2") +
 #   theme_bw()
 # mapa
-# ggsave(paste0("output/maps-kgr/kgr-xco2-",my_state,"-",my_year,".png"), plot = mapa, width = 10, height = 8, dpi = 300)
+# ggsave(paste0("output/maps-kgr/kgr-xco2-",paste(my_state,
+#                                             collapse = "_"),
+#               "-",my_year,".png"), plot = mapa, width = 10, height = 8, dpi = 300)
 # df <- ko_variavel |>
 #   as_tibble() |>
 #   mutate(var1.var = sqrt(var1.var))
-# write_rds(df,paste0("output/maps-kgr/kgr-xco2-",my_state,"-",my_year,".rds"))
+# write_rds(df,paste0("output/maps-kgr/kgr-xco2-",paste(my_state,
+#                                             collapse = "_"), 
+#                     "-",my_year,".rds"))
 ```
 
 ## 2) Análise para XCH<sub>4</sub>
@@ -897,8 +1526,8 @@ form <- xch4 ~ 1
 # Criando o Semivariograma Experimental.
 vari_exp <- gstat::variogram(form, data = data_set_aux,
                       cressie = FALSE,
-                      cutoff = 8, # distância máxima do semivariograma
-                      width = .8) # distancia entre pontos
+                      cutoff = 13, # distância máxima do semivariograma
+                      width = 1.4) # distancia entre pontos
 vari_exp  |>
   ggplot(aes(x=dist, y=gamma)) +
   geom_point() +
@@ -911,8 +1540,8 @@ vari_exp  |>
 ### Passo 3 - Ajuste dos modelos
 
 ``` r
-patamar=200
-alcance=2
+patamar=450
+alcance=15
 epepita=1
 modelo_1 <- gstat::fit.variogram(vari_exp,gstat::vgm(patamar,"Sph",alcance,epepita))
 modelo_2 <- gstat::fit.variogram(vari_exp,gstat::vgm(patamar,"Exp",alcance,epepita))
@@ -1173,13 +1802,13 @@ tibble(
   my_state, my_year, model, c0, c0_c1, a, rss, r2
 ) |> mutate(gde = c0/c0_c1, .after = "a") |>
   rename(state=my_state,year=my_year) |> 
-  write_csv(paste0("output/best-fit/",my_state,"-",my_year,"-xch4.csv"))
+  write_csv(paste0("output/best-fit/",paste(my_state,collapse = "_"),"-",my_year,"-xch4.csv"))
 
 ls_csv <- list.files("output/best-fit/",full.names = TRUE,pattern = "-xch4.csv")
 map_df(ls_csv, read_csv) |> 
   writexl::write_xlsx("output/semivariogram-models-xch4.xlsx")
 png(filename = paste0("output/semivariogram-img/semivar-xch4-",
-                      my_state,"-",my_year,".png"),
+                      paste(my_state,collapse = "_"),"-",my_year,".png"),
     width = 800, height = 600)
 plot(vari_exp,model=modelo,cex.lab=2, col=1,pl=F,pch=16,cex=2.2,ylab=list("Semivariância",cex=2.3),xlab=list("Distância de Separação h (m)",cex=2.3,cex.axis=4))
 dev.off()
@@ -1192,14 +1821,14 @@ dev.off()
 
 ``` r
 # ko_variavel <- gstat::krige(formula=form, data_set_aux, grid, model=modelo,
-#                      block=c(0.1,0.1),
+#                     block=c(0.1,0.1),
 #                      nsim=0,
 #                      na.action=na.pass,
 #                      debug.level=-1
 # )
 ```
 
-## Passo 7 Visualização dos padrões espaciais e armazenamento dos dados e imagem.
+## Passo 7 Visualização dos padrões espaciais e armazenamento dos dados e magem.
 
 ``` r
 # mapa <- as.tibble(ko_variavel) |>
@@ -1212,11 +1841,11 @@ dev.off()
 #        fill="xch4") +
 #   theme_bw()
 # mapa
-# ggsave(paste0("output/maps-kgr/kgr-xch4-",my_state,"-",my_year,".png"), plot = mapa, width = 10, height = 8, dpi = 300)
+# ggsave(paste0("output/maps-kgr/kgr-xch4-",paste(my_state,collapse = "_"),"-",my_year,".png"), plot = mapa, width = 10, height = 8, dpi = 300)
 # df <- ko_variavel |>
 #   as.tibble() |>
 #   mutate(var1.var = sqrt(var1.var))
-# write_rds(df,paste0("output/maps-kgr/kgr-xch4-",my_state,"-",my_year,".rds"))
+# write_rds(df,paste0("output/maps-kgr/kgr-xch4-",paste(my_state,collapse = "_"),"-",my_year,".rds"))
 ```
 
 # Análise para SIF
@@ -1377,7 +2006,7 @@ writexl::write_xlsx(df,"output/estat-desc-sif.xlsx")
 data_set_aux  <- data_set_me |>
   filter(
     year == my_year,
-    state == my_state) |>
+    state %in% my_state) |>
   group_by(latitude, longitude) |> 
   summarise(
     sif = mean(sif, na.rm = TRUE)
@@ -1423,8 +2052,8 @@ form <- sif ~ 1
 # Criando o Semivariograma Experimental.
 vari_exp <- gstat::variogram(form, data = data_set_aux,
                       cressie = FALSE,
-                      cutoff = 8, # distância máxima do semivariograma
-                      width = 0.45,
+                      cutoff = 21, # distância máxima do semivariograma
+                      width = 01,
                       cloud = FALSE) # distancia entre ponts
 vari_exp  |>
   ggplot(aes(x=dist, y=gamma)) +
@@ -1438,8 +2067,8 @@ vari_exp  |>
 ### Passo 3 - Ajuste dos modelos
 
 ``` r
-patamar=0.05
-alcance=2
+patamar=0.08
+alcance=15
 epepita=0.01
 modelo_1 <- gstat::fit.variogram(vari_exp,gstat::vgm(patamar,"Sph",alcance,epepita))
 modelo_2 <- gstat::fit.variogram(vari_exp,gstat::vgm(patamar,"Exp",alcance,epepita))
@@ -1499,7 +2128,7 @@ plot(vari_exp,model=modelo_3, col=1,pl=F,pch=16,cex=1.2,cex.main=7,ylab=list("Se
 # LOOCV - Leave one out cross validation
 conjunto_validacao <- data_set_aux |>
   as_tibble() |>
-  sample_n(10)
+  sample_n(50)
 sp::coordinates(conjunto_validacao) = ~longitude + latitude
 modelos<-list(modelo_1,modelo_2,modelo_3)
 for(j in 1:3){
@@ -1532,6 +2161,46 @@ for(j in 1:3){
     ## [using ordinary kriging]
     ## [using ordinary kriging]
     ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
 
 ![](README_files/figure-gfm/unnamed-chunk-47-1.png)<!-- -->
 
@@ -1545,9 +2214,89 @@ for(j in 1:3){
     ## [using ordinary kriging]
     ## [using ordinary kriging]
     ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
 
 ![](README_files/figure-gfm/unnamed-chunk-47-2.png)<!-- -->
 
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
+    ## [using ordinary kriging]
     ## [using ordinary kriging]
     ## [using ordinary kriging]
     ## [using ordinary kriging]
@@ -1580,7 +2329,7 @@ tibble(
   my_state, my_year, model, c0, c0_c1, a, rss, r2
 ) |> mutate(gde = c0/c0_c1, .after = "a") |>
   rename(state=my_state,year=my_year) |> 
-  write_csv(paste0("output/best-fit/",my_state,"-",my_year,"-sif.csv"))
+  write_csv(paste0("output/best-fit/",paste(my_state,collapse = "_"),"-",my_year,"-sif.csv"))
 
 ls_csv <- list.files("output/best-fit/",full.names = TRUE,pattern = "-sif.csv")
 map_df(ls_csv, read_csv) |> 
@@ -1619,11 +2368,11 @@ dev.off()
 #        fill="sif") +
 #   theme_bw()
 # mapa
-# ggsave(paste0("output/maps-kgr/kgr-sif-",my_state,"-",my_year,".png"), plot = mapa, width = 10, height = 8, dpi = 300)
+# ggsave(paste0("output/maps-kgr/kgr-sif-",paste(my_state,collapse = "_"),"-",my_year,".png"), plot = mapa, width = 10, height = 8, dpi = 300)
 # df <- ko_variavel |>
 #   as.tibble() |>
 #   mutate(var1.var = sqrt(var1.var))
-# write_rds(df,paste0("output/maps-kgr/kgr-sif-",my_state,"-",my_year,".rds"))
+# write_rds(df,paste0("output/maps-kgr/kgr-sif-",paste(my_state,collapse = "_"),"-",my_year,".rds"))
 ```
 
 # Compilando os mapas krigados.
@@ -1632,12 +2381,12 @@ dev.off()
 
 ``` r
 list_rds <- list.files("output/maps-kgr/",
-           pattern = ".rds$",
+           pattern = "_.*rds$",
            full.names = TRUE)
 kgr_maps <- map_df(list_rds, rds_reader)
 ```
 
-\#Cálculo do Beta
+# Cálculo do Beta
 
 ``` r
 grid_geral_state_city <- read_rds("data/grid-state-city.rds") |> 
@@ -1658,57 +2407,59 @@ glimpse(kgr_maps)
     ## Rows: 2,065,428
     ## Columns: 7
     ## $ variable  <chr> "sif", "sif", "sif", "sif", "sif", "sif", "sif", "sif", "sif…
-    ## $ state     <chr> "GO", "GO", "GO", "GO", "GO", "GO", "GO", "GO", "GO", "GO", …
+    ## $ state     <chr> "MG_MT_MS_GO_PA_DF", "MG_MT_MS_GO_PA_DF", "MG_MT_MS_GO_PA_DF…
     ## $ year      <dbl> 2015, 2015, 2015, 2015, 2015, 2015, 2015, 2015, 2015, 2015, …
-    ## $ X         <dbl> -50.88336, -50.83336, -50.98336, -50.93336, -50.88336, -50.9…
-    ## $ Y         <dbl> -19.46858, -19.46858, -19.41858, -19.41858, -19.41858, -19.3…
-    ## $ value     <dbl> 0.5771670, 0.5760101, 0.5799128, 0.5787559, 0.5775991, 0.580…
-    ## $ value_std <dbl> 0.08045126, 0.08065912, 0.07910018, 0.07927532, 0.07946431, …
+    ## $ X         <dbl> -54.28336, -54.23336, -55.38336, -55.33336, -55.28336, -55.2…
+    ## $ Y         <dbl> -24.01858, -24.01858, -23.96858, -23.96858, -23.96858, -23.9…
+    ## $ value     <dbl> 0.7541133, 0.7542637, 0.7486198, 0.7488217, 0.7490211, 0.749…
+    ## $ value_std <dbl> 0.05062479, 0.05058431, 0.05196294, 0.05183781, 0.05171695, …
 
 ``` r
 kgr_maps_detrend <- kgr_maps |>
   group_by(variable) |>
   mutate(
-    value_est = ifelse(variable =="xco2",a_co2+b_co2*(year-min(year)),
-                       ifelse(variable =="xch4",a_ch4+b_ch4*(year-min(year)),value)),
-    delta = ifelse(variable =="sif",value,value_est-value),
-    value_detrend = ifelse(variable =="xco2",(a_co2-delta)-(mean(value)-a_co2),
-                       ifelse(variable =="xch4",(a_ch4-delta)-(mean(value)-a_ch4),value)),
+    value_est = ifelse(variable=="xco2",
+                       a_co2+b_co2*(year-min(year)),
+                       ifelse(variable=="xch4",
+                              a_ch4+b_ch4*(year-min(year)),
+                              value)),
+    delta = ifelse(variable=="sif",value,value_est-value),
+    value_detrend = ifelse(variable =="xco2", (a_co2-delta)-(mean(value)-a_co2),
+                       ifelse(variable =="xch4",
+                              (a_ch4-delta)-(mean(value)-a_ch4),value)),
     value = value_detrend
   ) |> ungroup() |>
   select(-value_est,-delta,-value_detrend)
 
 kgr_maps_detrend |> 
-  filter(variable == "xco2")
+  filter(variable == "xch4")
 ```
 
     ## # A tibble: 688,476 × 7
-    ##    variable state  year     X     Y value value_std
-    ##    <chr>    <chr> <dbl> <dbl> <dbl> <dbl>     <dbl>
-    ##  1 xco2     GO     2015 -50.9 -19.5  393.      1.36
-    ##  2 xco2     GO     2015 -50.8 -19.5  393.      1.35
-    ##  3 xco2     GO     2015 -51.0 -19.4  393.      1.37
-    ##  4 xco2     GO     2015 -50.9 -19.4  393.      1.36
-    ##  5 xco2     GO     2015 -50.9 -19.4  393.      1.34
-    ##  6 xco2     GO     2015 -51.0 -19.4  393.      1.36
-    ##  7 xco2     GO     2015 -50.9 -19.4  393.      1.34
-    ##  8 xco2     GO     2015 -50.9 -19.4  393.      1.30
-    ##  9 xco2     GO     2015 -51.0 -19.3  393.      1.36
-    ## 10 xco2     GO     2015 -51.0 -19.3  393.      1.34
+    ##    variable state              year     X     Y value value_std
+    ##    <chr>    <chr>             <dbl> <dbl> <dbl> <dbl>     <dbl>
+    ##  1 xch4     MG_MT_MS_GO_PA_DF  2015 -54.3 -24.0 1785.      3.16
+    ##  2 xch4     MG_MT_MS_GO_PA_DF  2015 -54.2 -24.0 1785.      3.16
+    ##  3 xch4     MG_MT_MS_GO_PA_DF  2015 -55.4 -24.0 1787.      3.27
+    ##  4 xch4     MG_MT_MS_GO_PA_DF  2015 -55.3 -24.0 1786.      3.26
+    ##  5 xch4     MG_MT_MS_GO_PA_DF  2015 -55.3 -24.0 1786.      3.25
+    ##  6 xch4     MG_MT_MS_GO_PA_DF  2015 -55.2 -24.0 1786.      3.24
+    ##  7 xch4     MG_MT_MS_GO_PA_DF  2015 -55.2 -24.0 1786.      3.23
+    ##  8 xch4     MG_MT_MS_GO_PA_DF  2015 -55.1 -24.0 1786.      3.22
+    ##  9 xch4     MG_MT_MS_GO_PA_DF  2015 -55.1 -24.0 1786.      3.21
+    ## 10 xch4     MG_MT_MS_GO_PA_DF  2015 -55.0 -24.0 1786.      3.21
     ## # ℹ 688,466 more rows
 
 ## Cálculo do Beta para cada municípios
 
 ``` r
-kgr_maps_detrend <- kgr_maps_detrend |> 
+kgr_maps_detrend_city <- kgr_maps_detrend |> 
+  select(-state) |> 
   left_join(
-    grid_geral |> 
-      mutate(
-        state = ifelse(state == "DF","GO",state)
-      ),
-  by=c("state","X","Y")
+    grid_geral,
+  by=c("X","Y")
   ) |> 
-  group_by(variable, state, year) |> 
+  group_by(variable, year) |> 
   mutate(
     ref_mean = mean(value, na.rm = TRUE),
     anomaly = value - ref_mean
@@ -1716,7 +2467,7 @@ kgr_maps_detrend <- kgr_maps_detrend |>
 ```
 
 ``` r
-kgr_maps_nested <- kgr_maps_detrend |>
+kgr_maps_nested <- kgr_maps_detrend_city |>
   group_by(variable,state,city,year) |>
   summarise(
     media = mean(value,na.rm = TRUE),
@@ -1731,14 +2482,14 @@ kgr_maps_nested$data[[1]]
 ```
 
     ## # A tibble: 6 × 4
-    ##    year media desv_pad  anomaly
-    ##   <dbl> <dbl>    <dbl>    <dbl>
-    ## 1  2015 0.568   0.0407 -0.00931
-    ## 2  2016 0.567   0.0732  0.0424 
-    ## 3  2017 0.562   0.0906  0.0531 
-    ## 4  2018 0.552   0.0677  0.0200 
-    ## 5  2019 0.601   0.0789 -0.0238 
-    ## 6  2020 1.14    0.140   0.0381
+    ##    year media desv_pad anomaly
+    ##   <dbl> <dbl>    <dbl>   <dbl>
+    ## 1  2015 0.529   0.0236 -0.146 
+    ## 2  2016 0.559   0.0165 -0.0752
+    ## 3  2017 0.544   0.0636 -0.0973
+    ## 4  2018 0.483   0.0275 -0.162 
+    ## 5  2019 0.525   0.0662 -0.127 
+    ## 6  2020 0.982   0.0857 -0.0760
 
 ``` r
 get_reg_lin <- function(df, par_return = "beta"){
@@ -1769,10 +2520,10 @@ glimpse(kgr_maps_beta)
     ## Rows: 4,347
     ## Columns: 5
     ## $ variable <chr> "sif", "sif", "sif", "sif", "sif", "sif", "sif", "sif", "sif"…
-    ## $ state    <chr> "GO", "GO", "GO", "GO", "GO", "GO", "GO", "GO", "GO", "GO", "…
-    ## $ city     <chr> "Abadia De Goiás", "Abadiânia", "Acreúna", "Adelândia", "Alex…
-    ## $ beta     <dbl> 0.08439181, 0.08186892, 0.09305927, 0.08414331, 0.08251490, 0…
-    ## $ anomaly  <dbl> 0.020069596, 0.018499879, 0.002304915, 0.015885091, 0.0116462…
+    ## $ state    <chr> "DF", "GO", "GO", "GO", "GO", "GO", "GO", "GO", "GO", "GO", "…
+    ## $ city     <chr> "Brasília", "Abadia De Goiás", "Abadiânia", "Acreúna", "Adelâ…
+    ## $ beta     <dbl> 0.06011311, 0.06689278, 0.06451485, 0.06739441, 0.06929618, 0…
+    ## $ anomaly  <dbl> -0.11386511, -0.09241500, -0.09331475, -0.09655076, -0.088390…
 
 ## Mapeando o beta por cidades
 
@@ -1789,6 +2540,139 @@ city_kgr_beta <- left_join(
     rename(abbrev_state = state,name_muni =city),
            by=c("abbrev_state","name_muni"))
 ```
+
+## Mapeando a anomalia
+
+``` r
+map(2015:2020, ~kgr_maps_detrend_city |> 
+  filter(variable=="sif",year==.x) |> 
+  ggplot(aes(x=X, y=Y)) +
+  geom_tile(aes(fill = anomaly)) +
+  scale_fill_viridis_c(option = "mako") +
+  coord_equal() +
+  labs(x="Longitude",
+       y="Latitude",
+       fill="anomaly_sif") +
+  theme_bw()
+)
+```
+
+    ## [[1]]
+
+![](README_files/figure-gfm/unnamed-chunk-57-1.png)<!-- -->
+
+    ## 
+    ## [[2]]
+
+![](README_files/figure-gfm/unnamed-chunk-57-2.png)<!-- -->
+
+    ## 
+    ## [[3]]
+
+![](README_files/figure-gfm/unnamed-chunk-57-3.png)<!-- -->
+
+    ## 
+    ## [[4]]
+
+![](README_files/figure-gfm/unnamed-chunk-57-4.png)<!-- -->
+
+    ## 
+    ## [[5]]
+
+![](README_files/figure-gfm/unnamed-chunk-57-5.png)<!-- -->
+
+    ## 
+    ## [[6]]
+
+![](README_files/figure-gfm/unnamed-chunk-57-6.png)<!-- -->
+
+``` r
+map(2015:2020, ~kgr_maps_detrend_city |> 
+  filter(variable=="xch4",year==.x) |> 
+  ggplot(aes(x=X, y=Y)) +
+  geom_tile(aes(fill = anomaly)) +
+  scale_fill_viridis_c(option = "mako") +
+  coord_equal() +
+  labs(x="Longitude",
+       y="Latitude",
+       fill="anomaly_xch4") +
+  theme_bw()
+)
+```
+
+    ## [[1]]
+
+![](README_files/figure-gfm/unnamed-chunk-58-1.png)<!-- -->
+
+    ## 
+    ## [[2]]
+
+![](README_files/figure-gfm/unnamed-chunk-58-2.png)<!-- -->
+
+    ## 
+    ## [[3]]
+
+![](README_files/figure-gfm/unnamed-chunk-58-3.png)<!-- -->
+
+    ## 
+    ## [[4]]
+
+![](README_files/figure-gfm/unnamed-chunk-58-4.png)<!-- -->
+
+    ## 
+    ## [[5]]
+
+![](README_files/figure-gfm/unnamed-chunk-58-5.png)<!-- -->
+
+    ## 
+    ## [[6]]
+
+![](README_files/figure-gfm/unnamed-chunk-58-6.png)<!-- -->
+
+``` r
+map(2015:2020, ~kgr_maps_detrend_city |> 
+  filter(variable=="xco2",year==.x) |> 
+  ggplot(aes(x=X, y=Y)) +
+  geom_tile(aes(fill = anomaly)) +
+  scale_fill_viridis_c(option = "mako") +
+  coord_equal() +
+  labs(x="Longitude",
+       y="Latitude",
+       fill="anomaly_xco2") +
+  theme_bw()
+)
+```
+
+    ## [[1]]
+
+![](README_files/figure-gfm/unnamed-chunk-59-1.png)<!-- -->
+
+    ## 
+    ## [[2]]
+
+![](README_files/figure-gfm/unnamed-chunk-59-2.png)<!-- -->
+
+    ## 
+    ## [[3]]
+
+![](README_files/figure-gfm/unnamed-chunk-59-3.png)<!-- -->
+
+    ## 
+    ## [[4]]
+
+![](README_files/figure-gfm/unnamed-chunk-59-4.png)<!-- -->
+
+    ## 
+    ## [[5]]
+
+![](README_files/figure-gfm/unnamed-chunk-59-5.png)<!-- -->
+
+    ## 
+    ## [[6]]
+
+![](README_files/figure-gfm/unnamed-chunk-59-6.png)<!-- -->
+
+## Mapa dos Betas e Anomalias médias
 
 ``` r
 city_kgr_beta |>
@@ -1816,7 +2700,7 @@ city_kgr_beta |>
      scale_fill_viridis_c(option = "inferno")
 ```
 
-![](README_files/figure-gfm/unnamed-chunk-57-1.png)<!-- -->
+![](README_files/figure-gfm/unnamed-chunk-60-1.png)<!-- -->
 
 ``` r
 city_kgr_beta |>
@@ -1844,7 +2728,7 @@ city_kgr_beta |>
      scale_fill_viridis_c(option = "mako")
 ```
 
-![](README_files/figure-gfm/unnamed-chunk-58-1.png)<!-- -->
+![](README_files/figure-gfm/unnamed-chunk-61-1.png)<!-- -->
 
 ``` r
 city_kgr_beta |>
@@ -1872,7 +2756,7 @@ city_kgr_beta |>
      scale_fill_viridis_c(option = "inferno")
 ```
 
-![](README_files/figure-gfm/unnamed-chunk-59-1.png)<!-- -->
+![](README_files/figure-gfm/unnamed-chunk-62-1.png)<!-- -->
 
 ``` r
 city_kgr_beta |>
@@ -1900,7 +2784,7 @@ city_kgr_beta |>
      scale_fill_viridis_c(option = "mako")
 ```
 
-![](README_files/figure-gfm/unnamed-chunk-60-1.png)<!-- -->
+![](README_files/figure-gfm/unnamed-chunk-63-1.png)<!-- -->
 
 ``` r
 city_kgr_beta |>
@@ -1928,7 +2812,7 @@ city_kgr_beta |>
      scale_fill_viridis_c(option = "inferno")
 ```
 
-![](README_files/figure-gfm/unnamed-chunk-61-1.png)<!-- -->
+![](README_files/figure-gfm/unnamed-chunk-64-1.png)<!-- -->
 
 ``` r
 city_kgr_beta |>
@@ -1956,7 +2840,7 @@ city_kgr_beta |>
      scale_fill_viridis_c(option = "mako")
 ```
 
-![](README_files/figure-gfm/unnamed-chunk-62-1.png)<!-- -->
+![](README_files/figure-gfm/unnamed-chunk-65-1.png)<!-- -->
 
 ## Inspeção por estado
 
@@ -1986,7 +2870,7 @@ my_plot_map_beta <- function(.estado, .variable){
 my_plot_map_beta("GO", "beta_xch4")
 ```
 
-![](README_files/figure-gfm/unnamed-chunk-63-1.png)<!-- -->
+![](README_files/figure-gfm/unnamed-chunk-66-1.png)<!-- -->
 
 ``` r
 map(estados[-6],my_plot_map_beta,.variable="beta_xco2")
@@ -1994,27 +2878,27 @@ map(estados[-6],my_plot_map_beta,.variable="beta_xco2")
 
     ## [[1]]
 
-![](README_files/figure-gfm/unnamed-chunk-63-2.png)<!-- -->
+![](README_files/figure-gfm/unnamed-chunk-66-2.png)<!-- -->
 
     ## 
     ## [[2]]
 
-![](README_files/figure-gfm/unnamed-chunk-63-3.png)<!-- -->
+![](README_files/figure-gfm/unnamed-chunk-66-3.png)<!-- -->
 
     ## 
     ## [[3]]
 
-![](README_files/figure-gfm/unnamed-chunk-63-4.png)<!-- -->
+![](README_files/figure-gfm/unnamed-chunk-66-4.png)<!-- -->
 
     ## 
     ## [[4]]
 
-![](README_files/figure-gfm/unnamed-chunk-63-5.png)<!-- -->
+![](README_files/figure-gfm/unnamed-chunk-66-5.png)<!-- -->
 
     ## 
     ## [[5]]
 
-![](README_files/figure-gfm/unnamed-chunk-63-6.png)<!-- -->
+![](README_files/figure-gfm/unnamed-chunk-66-6.png)<!-- -->
 
 ``` r
 map(estados[-6],my_plot_map_beta,.variable="anomaly_xco2")
@@ -2022,27 +2906,27 @@ map(estados[-6],my_plot_map_beta,.variable="anomaly_xco2")
 
     ## [[1]]
 
-![](README_files/figure-gfm/unnamed-chunk-63-7.png)<!-- -->
+![](README_files/figure-gfm/unnamed-chunk-66-7.png)<!-- -->
 
     ## 
     ## [[2]]
 
-![](README_files/figure-gfm/unnamed-chunk-63-8.png)<!-- -->
+![](README_files/figure-gfm/unnamed-chunk-66-8.png)<!-- -->
 
     ## 
     ## [[3]]
 
-![](README_files/figure-gfm/unnamed-chunk-63-9.png)<!-- -->
+![](README_files/figure-gfm/unnamed-chunk-66-9.png)<!-- -->
 
     ## 
     ## [[4]]
 
-![](README_files/figure-gfm/unnamed-chunk-63-10.png)<!-- -->
+![](README_files/figure-gfm/unnamed-chunk-66-10.png)<!-- -->
 
     ## 
     ## [[5]]
 
-![](README_files/figure-gfm/unnamed-chunk-63-11.png)<!-- -->
+![](README_files/figure-gfm/unnamed-chunk-66-11.png)<!-- -->
 
 ``` r
 map(estados[-6],my_plot_map_beta,.variable="beta_xch4")
@@ -2050,27 +2934,27 @@ map(estados[-6],my_plot_map_beta,.variable="beta_xch4")
 
     ## [[1]]
 
-![](README_files/figure-gfm/unnamed-chunk-63-12.png)<!-- -->
+![](README_files/figure-gfm/unnamed-chunk-66-12.png)<!-- -->
 
     ## 
     ## [[2]]
 
-![](README_files/figure-gfm/unnamed-chunk-63-13.png)<!-- -->
+![](README_files/figure-gfm/unnamed-chunk-66-13.png)<!-- -->
 
     ## 
     ## [[3]]
 
-![](README_files/figure-gfm/unnamed-chunk-63-14.png)<!-- -->
+![](README_files/figure-gfm/unnamed-chunk-66-14.png)<!-- -->
 
     ## 
     ## [[4]]
 
-![](README_files/figure-gfm/unnamed-chunk-63-15.png)<!-- -->
+![](README_files/figure-gfm/unnamed-chunk-66-15.png)<!-- -->
 
     ## 
     ## [[5]]
 
-![](README_files/figure-gfm/unnamed-chunk-63-16.png)<!-- -->
+![](README_files/figure-gfm/unnamed-chunk-66-16.png)<!-- -->
 
 ``` r
 map(estados[-6],my_plot_map_beta,.variable="anomaly_xch4")
@@ -2078,27 +2962,27 @@ map(estados[-6],my_plot_map_beta,.variable="anomaly_xch4")
 
     ## [[1]]
 
-![](README_files/figure-gfm/unnamed-chunk-63-17.png)<!-- -->
+![](README_files/figure-gfm/unnamed-chunk-66-17.png)<!-- -->
 
     ## 
     ## [[2]]
 
-![](README_files/figure-gfm/unnamed-chunk-63-18.png)<!-- -->
+![](README_files/figure-gfm/unnamed-chunk-66-18.png)<!-- -->
 
     ## 
     ## [[3]]
 
-![](README_files/figure-gfm/unnamed-chunk-63-19.png)<!-- -->
+![](README_files/figure-gfm/unnamed-chunk-66-19.png)<!-- -->
 
     ## 
     ## [[4]]
 
-![](README_files/figure-gfm/unnamed-chunk-63-20.png)<!-- -->
+![](README_files/figure-gfm/unnamed-chunk-66-20.png)<!-- -->
 
     ## 
     ## [[5]]
 
-![](README_files/figure-gfm/unnamed-chunk-63-21.png)<!-- -->
+![](README_files/figure-gfm/unnamed-chunk-66-21.png)<!-- -->
 
 ``` r
 map(estados[-6],my_plot_map_beta,.variable="beta_sif")
@@ -2106,27 +2990,27 @@ map(estados[-6],my_plot_map_beta,.variable="beta_sif")
 
     ## [[1]]
 
-![](README_files/figure-gfm/unnamed-chunk-63-22.png)<!-- -->
+![](README_files/figure-gfm/unnamed-chunk-66-22.png)<!-- -->
 
     ## 
     ## [[2]]
 
-![](README_files/figure-gfm/unnamed-chunk-63-23.png)<!-- -->
+![](README_files/figure-gfm/unnamed-chunk-66-23.png)<!-- -->
 
     ## 
     ## [[3]]
 
-![](README_files/figure-gfm/unnamed-chunk-63-24.png)<!-- -->
+![](README_files/figure-gfm/unnamed-chunk-66-24.png)<!-- -->
 
     ## 
     ## [[4]]
 
-![](README_files/figure-gfm/unnamed-chunk-63-25.png)<!-- -->
+![](README_files/figure-gfm/unnamed-chunk-66-25.png)<!-- -->
 
     ## 
     ## [[5]]
 
-![](README_files/figure-gfm/unnamed-chunk-63-26.png)<!-- -->
+![](README_files/figure-gfm/unnamed-chunk-66-26.png)<!-- -->
 
 ``` r
 map(estados[-6],my_plot_map_beta,.variable="anomaly_sif")
@@ -2134,27 +3018,27 @@ map(estados[-6],my_plot_map_beta,.variable="anomaly_sif")
 
     ## [[1]]
 
-![](README_files/figure-gfm/unnamed-chunk-63-27.png)<!-- -->
+![](README_files/figure-gfm/unnamed-chunk-66-27.png)<!-- -->
 
     ## 
     ## [[2]]
 
-![](README_files/figure-gfm/unnamed-chunk-63-28.png)<!-- -->
+![](README_files/figure-gfm/unnamed-chunk-66-28.png)<!-- -->
 
     ## 
     ## [[3]]
 
-![](README_files/figure-gfm/unnamed-chunk-63-29.png)<!-- -->
+![](README_files/figure-gfm/unnamed-chunk-66-29.png)<!-- -->
 
     ## 
     ## [[4]]
 
-![](README_files/figure-gfm/unnamed-chunk-63-30.png)<!-- -->
+![](README_files/figure-gfm/unnamed-chunk-66-30.png)<!-- -->
 
     ## 
     ## [[5]]
 
-![](README_files/figure-gfm/unnamed-chunk-63-31.png)<!-- --> \#
+![](README_files/figure-gfm/unnamed-chunk-66-31.png)<!-- --> \#
 Incorporação dos dados do CT
 
 ## IMPORTANDO A BASE DE DADOS
@@ -2303,32 +3187,32 @@ map(estados,my_plot_map)
 
     ## [[1]]
 
-![](README_files/figure-gfm/unnamed-chunk-68-1.png)<!-- -->
+![](README_files/figure-gfm/unnamed-chunk-71-1.png)<!-- -->
 
     ## 
     ## [[2]]
 
-![](README_files/figure-gfm/unnamed-chunk-68-2.png)<!-- -->
+![](README_files/figure-gfm/unnamed-chunk-71-2.png)<!-- -->
 
     ## 
     ## [[3]]
 
-![](README_files/figure-gfm/unnamed-chunk-68-3.png)<!-- -->
+![](README_files/figure-gfm/unnamed-chunk-71-3.png)<!-- -->
 
     ## 
     ## [[4]]
 
-![](README_files/figure-gfm/unnamed-chunk-68-4.png)<!-- -->
+![](README_files/figure-gfm/unnamed-chunk-71-4.png)<!-- -->
 
     ## 
     ## [[5]]
 
-![](README_files/figure-gfm/unnamed-chunk-68-5.png)<!-- -->
+![](README_files/figure-gfm/unnamed-chunk-71-5.png)<!-- -->
 
     ## 
     ## [[6]]
 
-![](README_files/figure-gfm/unnamed-chunk-68-6.png)<!-- -->
+![](README_files/figure-gfm/unnamed-chunk-71-6.png)<!-- -->
 
 ``` r
 # ggsave('GO.png', dpi = 3000, width = 9, height = 5.5)
@@ -2431,7 +3315,7 @@ left_join(citys |> filter(abbrev_state %in% estados),
      scale_fill_viridis_d()
 ```
 
-![](README_files/figure-gfm/unnamed-chunk-69-1.png)<!-- -->
+![](README_files/figure-gfm/unnamed-chunk-72-1.png)<!-- -->
 
 ``` r
  # ggsave('Maps_states_red.png')
@@ -2455,276 +3339,276 @@ my_corrplot <- function(.estado){
 map(estados[-6],my_corrplot)
 ```
 
-![](README_files/figure-gfm/unnamed-chunk-70-1.png)<!-- -->
-
-    ## $corr
-    ##                    emissions_quantity   beta_sif  beta_xch4   beta_xco2
-    ## emissions_quantity         1.00000000  0.1324880 -0.0153235  0.07285918
-    ## beta_sif                   0.13248804  1.0000000  0.3515123 -0.11069208
-    ## beta_xch4                 -0.01532350  0.3515123  1.0000000 -0.35710718
-    ## beta_xco2                  0.07285918 -0.1106921 -0.3571072  1.00000000
-    ## anomaly_sif               -0.09837243  0.6259978  0.2194638 -0.16186135
-    ## anomaly_xch4               0.23203487  0.1862960  0.5285885 -0.30175431
-    ## anomaly_xco2               0.14873518  0.1562305  0.3808647  0.23078093
-    ##                    anomaly_sif anomaly_xch4 anomaly_xco2
-    ## emissions_quantity -0.09837243    0.2320349    0.1487352
-    ## beta_sif            0.62599776    0.1862960    0.1562305
-    ## beta_xch4           0.21946379    0.5285885    0.3808647
-    ## beta_xco2          -0.16186135   -0.3017543    0.2307809
-    ## anomaly_sif         1.00000000   -0.2641484   -0.1100813
-    ## anomaly_xch4       -0.26414845    1.0000000    0.4714459
-    ## anomaly_xco2       -0.11008130    0.4714459    1.0000000
-    ## 
-    ## $corrPos
-    ##                 xName              yName x y        corr
-    ## 1  emissions_quantity emissions_quantity 1 7  1.00000000
-    ## 2            beta_sif emissions_quantity 2 7  0.13248804
-    ## 3            beta_sif           beta_sif 2 6  1.00000000
-    ## 4           beta_xch4 emissions_quantity 3 7 -0.01532350
-    ## 5           beta_xch4           beta_sif 3 6  0.35151231
-    ## 6           beta_xch4          beta_xch4 3 5  1.00000000
-    ## 7           beta_xco2 emissions_quantity 4 7  0.07285918
-    ## 8           beta_xco2           beta_sif 4 6 -0.11069208
-    ## 9           beta_xco2          beta_xch4 4 5 -0.35710718
-    ## 10          beta_xco2          beta_xco2 4 4  1.00000000
-    ## 11        anomaly_sif emissions_quantity 5 7 -0.09837243
-    ## 12        anomaly_sif           beta_sif 5 6  0.62599776
-    ## 13        anomaly_sif          beta_xch4 5 5  0.21946379
-    ## 14        anomaly_sif          beta_xco2 5 4 -0.16186135
-    ## 15        anomaly_sif        anomaly_sif 5 3  1.00000000
-    ## 16       anomaly_xch4 emissions_quantity 6 7  0.23203487
-    ## 17       anomaly_xch4           beta_sif 6 6  0.18629597
-    ## 18       anomaly_xch4          beta_xch4 6 5  0.52858847
-    ## 19       anomaly_xch4          beta_xco2 6 4 -0.30175431
-    ## 20       anomaly_xch4        anomaly_sif 6 3 -0.26414845
-    ## 21       anomaly_xch4       anomaly_xch4 6 2  1.00000000
-    ## 22       anomaly_xco2 emissions_quantity 7 7  0.14873518
-    ## 23       anomaly_xco2           beta_sif 7 6  0.15623052
-    ## 24       anomaly_xco2          beta_xch4 7 5  0.38086473
-    ## 25       anomaly_xco2          beta_xco2 7 4  0.23078093
-    ## 26       anomaly_xco2        anomaly_sif 7 3 -0.11008130
-    ## 27       anomaly_xco2       anomaly_xch4 7 2  0.47144586
-    ## 28       anomaly_xco2       anomaly_xco2 7 1  1.00000000
-    ## 
-    ## $arg
-    ## $arg$type
-    ## [1] "upper"
-
-![](README_files/figure-gfm/unnamed-chunk-70-2.png)<!-- -->
+![](README_files/figure-gfm/unnamed-chunk-73-1.png)<!-- -->
 
     ## $corr
     ##                    emissions_quantity    beta_sif   beta_xch4    beta_xco2
-    ## emissions_quantity         1.00000000 -0.17802366 -0.04456933 -0.111521725
-    ## beta_sif                  -0.17802366  1.00000000  0.77794057  0.072008047
-    ## beta_xch4                 -0.04456933  0.77794057  1.00000000  0.058279941
-    ## beta_xco2                 -0.11152172  0.07200805  0.05827994  1.000000000
-    ## anomaly_sif               -0.19746780  0.76465417  0.66819444  0.006901227
-    ## anomaly_xch4              -0.24352846 -0.08588047 -0.25426953  0.081039120
-    ## anomaly_xco2              -0.20981829  0.57403512  0.53479259  0.203218823
-    ##                     anomaly_sif anomaly_xch4 anomaly_xco2
-    ## emissions_quantity -0.197467801  -0.24352846  -0.20981829
-    ## beta_sif            0.764654173  -0.08588047   0.57403512
-    ## beta_xch4           0.668194441  -0.25426953   0.53479259
-    ## beta_xco2           0.006901227   0.08103912   0.20321882
-    ## anomaly_sif         1.000000000  -0.04622247   0.45655245
-    ## anomaly_xch4       -0.046222475   1.00000000   0.02741685
-    ## anomaly_xco2        0.456552448   0.02741685   1.00000000
+    ## emissions_quantity         1.00000000  0.14873419  0.39927857  0.068290722
+    ## beta_sif                   0.14873419  1.00000000 -0.11432897 -0.259431158
+    ## beta_xch4                  0.39927857 -0.11432897  1.00000000  0.275909344
+    ## beta_xco2                  0.06829072 -0.25943116  0.27590934  1.000000000
+    ## anomaly_sif               -0.21316383  0.03236850 -0.70127669 -0.204801774
+    ## anomaly_xch4               0.40842013  0.09156827  0.91415516  0.245724009
+    ## anomaly_xco2               0.13781510  0.41136493  0.02038552  0.004086857
+    ##                    anomaly_sif anomaly_xch4 anomaly_xco2
+    ## emissions_quantity  -0.2131638   0.40842013  0.137815098
+    ## beta_sif             0.0323685   0.09156827  0.411364933
+    ## beta_xch4           -0.7012767   0.91415516  0.020385523
+    ## beta_xco2           -0.2048018   0.24572401  0.004086857
+    ## anomaly_sif          1.0000000  -0.61527589 -0.110828208
+    ## anomaly_xch4        -0.6152759   1.00000000  0.128256899
+    ## anomaly_xco2        -0.1108282   0.12825690  1.000000000
     ## 
     ## $corrPos
     ##                 xName              yName x y         corr
     ## 1  emissions_quantity emissions_quantity 1 7  1.000000000
-    ## 2            beta_sif emissions_quantity 2 7 -0.178023660
+    ## 2            beta_sif emissions_quantity 2 7  0.148734193
     ## 3            beta_sif           beta_sif 2 6  1.000000000
-    ## 4           beta_xch4 emissions_quantity 3 7 -0.044569329
-    ## 5           beta_xch4           beta_sif 3 6  0.777940565
+    ## 4           beta_xch4 emissions_quantity 3 7  0.399278574
+    ## 5           beta_xch4           beta_sif 3 6 -0.114328968
     ## 6           beta_xch4          beta_xch4 3 5  1.000000000
-    ## 7           beta_xco2 emissions_quantity 4 7 -0.111521725
-    ## 8           beta_xco2           beta_sif 4 6  0.072008047
-    ## 9           beta_xco2          beta_xch4 4 5  0.058279941
+    ## 7           beta_xco2 emissions_quantity 4 7  0.068290722
+    ## 8           beta_xco2           beta_sif 4 6 -0.259431158
+    ## 9           beta_xco2          beta_xch4 4 5  0.275909344
     ## 10          beta_xco2          beta_xco2 4 4  1.000000000
-    ## 11        anomaly_sif emissions_quantity 5 7 -0.197467801
-    ## 12        anomaly_sif           beta_sif 5 6  0.764654173
-    ## 13        anomaly_sif          beta_xch4 5 5  0.668194441
-    ## 14        anomaly_sif          beta_xco2 5 4  0.006901227
+    ## 11        anomaly_sif emissions_quantity 5 7 -0.213163832
+    ## 12        anomaly_sif           beta_sif 5 6  0.032368505
+    ## 13        anomaly_sif          beta_xch4 5 5 -0.701276686
+    ## 14        anomaly_sif          beta_xco2 5 4 -0.204801774
     ## 15        anomaly_sif        anomaly_sif 5 3  1.000000000
-    ## 16       anomaly_xch4 emissions_quantity 6 7 -0.243528460
-    ## 17       anomaly_xch4           beta_sif 6 6 -0.085880475
-    ## 18       anomaly_xch4          beta_xch4 6 5 -0.254269533
-    ## 19       anomaly_xch4          beta_xco2 6 4  0.081039120
-    ## 20       anomaly_xch4        anomaly_sif 6 3 -0.046222475
+    ## 16       anomaly_xch4 emissions_quantity 6 7  0.408420128
+    ## 17       anomaly_xch4           beta_sif 6 6  0.091568266
+    ## 18       anomaly_xch4          beta_xch4 6 5  0.914155157
+    ## 19       anomaly_xch4          beta_xco2 6 4  0.245724009
+    ## 20       anomaly_xch4        anomaly_sif 6 3 -0.615275894
     ## 21       anomaly_xch4       anomaly_xch4 6 2  1.000000000
-    ## 22       anomaly_xco2 emissions_quantity 7 7 -0.209818285
-    ## 23       anomaly_xco2           beta_sif 7 6  0.574035118
-    ## 24       anomaly_xco2          beta_xch4 7 5  0.534792591
-    ## 25       anomaly_xco2          beta_xco2 7 4  0.203218823
-    ## 26       anomaly_xco2        anomaly_sif 7 3  0.456552448
-    ## 27       anomaly_xco2       anomaly_xch4 7 2  0.027416851
+    ## 22       anomaly_xco2 emissions_quantity 7 7  0.137815098
+    ## 23       anomaly_xco2           beta_sif 7 6  0.411364933
+    ## 24       anomaly_xco2          beta_xch4 7 5  0.020385523
+    ## 25       anomaly_xco2          beta_xco2 7 4  0.004086857
+    ## 26       anomaly_xco2        anomaly_sif 7 3 -0.110828208
+    ## 27       anomaly_xco2       anomaly_xch4 7 2  0.128256899
     ## 28       anomaly_xco2       anomaly_xco2 7 1  1.000000000
     ## 
     ## $arg
     ## $arg$type
     ## [1] "upper"
 
-![](README_files/figure-gfm/unnamed-chunk-70-3.png)<!-- -->
+![](README_files/figure-gfm/unnamed-chunk-73-2.png)<!-- -->
 
     ## $corr
     ##                    emissions_quantity   beta_sif   beta_xch4   beta_xco2
-    ## emissions_quantity         1.00000000  0.2541669 -0.34654819 -0.02718334
-    ## beta_sif                   0.25416689  1.0000000 -0.55360429 -0.07011410
-    ## beta_xch4                 -0.34654819 -0.5536043  1.00000000 -0.06467217
-    ## beta_xco2                 -0.02718334 -0.0701141 -0.06467217  1.00000000
-    ## anomaly_sif                0.29299648  0.7621063 -0.37057679 -0.12726747
-    ## anomaly_xch4               0.01403859  0.1906515 -0.36934119 -0.07679163
-    ## anomaly_xco2               0.16625480  0.1874704 -0.18368474 -0.08091908
+    ## emissions_quantity         1.00000000 -0.1059981 -0.12023791 -0.07830137
+    ## beta_sif                  -0.10599812  1.0000000 -0.80013120  0.17542586
+    ## beta_xch4                 -0.12023791 -0.8001312  1.00000000 -0.17087315
+    ## beta_xco2                 -0.07830137  0.1754259 -0.17087315  1.00000000
+    ## anomaly_sif               -0.26958081 -0.3436575  0.55370755  0.02117601
+    ## anomaly_xch4              -0.34435285  0.4305263 -0.01053552  0.10596751
+    ## anomaly_xco2              -0.20314448 -0.3211388  0.38388402  0.08627408
     ##                    anomaly_sif anomaly_xch4 anomaly_xco2
-    ## emissions_quantity   0.2929965   0.01403859   0.16625480
-    ## beta_sif             0.7621063   0.19065145   0.18747042
-    ## beta_xch4           -0.3705768  -0.36934119  -0.18368474
-    ## beta_xco2           -0.1272675  -0.07679163  -0.08091908
-    ## anomaly_sif          1.0000000  -0.10636732   0.34773122
-    ## anomaly_xch4        -0.1063673   1.00000000   0.14567012
-    ## anomaly_xco2         0.3477312   0.14567012   1.00000000
+    ## emissions_quantity -0.26958081  -0.34435285  -0.20314448
+    ## beta_sif           -0.34365748   0.43052634  -0.32113883
+    ## beta_xch4           0.55370755  -0.01053552   0.38388402
+    ## beta_xco2           0.02117601   0.10596751   0.08627408
+    ## anomaly_sif         1.00000000   0.50385078   0.54381054
+    ## anomaly_xch4        0.50385078   1.00000000   0.27173252
+    ## anomaly_xco2        0.54381054   0.27173252   1.00000000
     ## 
     ## $corrPos
     ##                 xName              yName x y        corr
     ## 1  emissions_quantity emissions_quantity 1 7  1.00000000
-    ## 2            beta_sif emissions_quantity 2 7  0.25416689
+    ## 2            beta_sif emissions_quantity 2 7 -0.10599812
     ## 3            beta_sif           beta_sif 2 6  1.00000000
-    ## 4           beta_xch4 emissions_quantity 3 7 -0.34654819
-    ## 5           beta_xch4           beta_sif 3 6 -0.55360429
+    ## 4           beta_xch4 emissions_quantity 3 7 -0.12023791
+    ## 5           beta_xch4           beta_sif 3 6 -0.80013120
     ## 6           beta_xch4          beta_xch4 3 5  1.00000000
-    ## 7           beta_xco2 emissions_quantity 4 7 -0.02718334
-    ## 8           beta_xco2           beta_sif 4 6 -0.07011410
-    ## 9           beta_xco2          beta_xch4 4 5 -0.06467217
+    ## 7           beta_xco2 emissions_quantity 4 7 -0.07830137
+    ## 8           beta_xco2           beta_sif 4 6  0.17542586
+    ## 9           beta_xco2          beta_xch4 4 5 -0.17087315
     ## 10          beta_xco2          beta_xco2 4 4  1.00000000
-    ## 11        anomaly_sif emissions_quantity 5 7  0.29299648
-    ## 12        anomaly_sif           beta_sif 5 6  0.76210631
-    ## 13        anomaly_sif          beta_xch4 5 5 -0.37057679
-    ## 14        anomaly_sif          beta_xco2 5 4 -0.12726747
+    ## 11        anomaly_sif emissions_quantity 5 7 -0.26958081
+    ## 12        anomaly_sif           beta_sif 5 6 -0.34365748
+    ## 13        anomaly_sif          beta_xch4 5 5  0.55370755
+    ## 14        anomaly_sif          beta_xco2 5 4  0.02117601
     ## 15        anomaly_sif        anomaly_sif 5 3  1.00000000
-    ## 16       anomaly_xch4 emissions_quantity 6 7  0.01403859
-    ## 17       anomaly_xch4           beta_sif 6 6  0.19065145
-    ## 18       anomaly_xch4          beta_xch4 6 5 -0.36934119
-    ## 19       anomaly_xch4          beta_xco2 6 4 -0.07679163
-    ## 20       anomaly_xch4        anomaly_sif 6 3 -0.10636732
+    ## 16       anomaly_xch4 emissions_quantity 6 7 -0.34435285
+    ## 17       anomaly_xch4           beta_sif 6 6  0.43052634
+    ## 18       anomaly_xch4          beta_xch4 6 5 -0.01053552
+    ## 19       anomaly_xch4          beta_xco2 6 4  0.10596751
+    ## 20       anomaly_xch4        anomaly_sif 6 3  0.50385078
     ## 21       anomaly_xch4       anomaly_xch4 6 2  1.00000000
-    ## 22       anomaly_xco2 emissions_quantity 7 7  0.16625480
-    ## 23       anomaly_xco2           beta_sif 7 6  0.18747042
-    ## 24       anomaly_xco2          beta_xch4 7 5 -0.18368474
-    ## 25       anomaly_xco2          beta_xco2 7 4 -0.08091908
-    ## 26       anomaly_xco2        anomaly_sif 7 3  0.34773122
-    ## 27       anomaly_xco2       anomaly_xch4 7 2  0.14567012
+    ## 22       anomaly_xco2 emissions_quantity 7 7 -0.20314448
+    ## 23       anomaly_xco2           beta_sif 7 6 -0.32113883
+    ## 24       anomaly_xco2          beta_xch4 7 5  0.38388402
+    ## 25       anomaly_xco2          beta_xco2 7 4  0.08627408
+    ## 26       anomaly_xco2        anomaly_sif 7 3  0.54381054
+    ## 27       anomaly_xco2       anomaly_xch4 7 2  0.27173252
     ## 28       anomaly_xco2       anomaly_xco2 7 1  1.00000000
     ## 
     ## $arg
     ## $arg$type
     ## [1] "upper"
 
-![](README_files/figure-gfm/unnamed-chunk-70-4.png)<!-- -->
+![](README_files/figure-gfm/unnamed-chunk-73-3.png)<!-- -->
 
     ## $corr
-    ##                    emissions_quantity     beta_sif   beta_xch4   beta_xco2
-    ## emissions_quantity         1.00000000 -0.033924591  0.08839460  0.06509208
-    ## beta_sif                  -0.03392459  1.000000000  0.15025376  0.10862625
-    ## beta_xch4                  0.08839460  0.150253764  1.00000000 -0.05307946
-    ## beta_xco2                  0.06509208  0.108626247 -0.05307946  1.00000000
-    ## anomaly_sif               -0.29865145 -0.003117177  0.09698141 -0.01080553
-    ## anomaly_xch4              -0.08501938 -0.150318919  0.49864116  0.02505230
-    ## anomaly_xco2              -0.06868677 -0.071383012 -0.11817582 -0.12984808
+    ##                    emissions_quantity    beta_sif  beta_xch4   beta_xco2
+    ## emissions_quantity         1.00000000 -0.00418003  0.5457437 -0.03564856
+    ## beta_sif                  -0.00418003  1.00000000  0.1314738  0.05008150
+    ## beta_xch4                  0.54574373  0.13147379  1.0000000 -0.22385509
+    ## beta_xco2                 -0.03564856  0.05008150 -0.2238551  1.00000000
+    ## anomaly_sif                0.24670067  0.59790210  0.4392975 -0.02663126
+    ## anomaly_xch4               0.39602503  0.69874862  0.7656554 -0.15642252
+    ## anomaly_xco2               0.11175666  0.18999422  0.2883958  0.21964877
+    ##                    anomaly_sif anomaly_xch4 anomaly_xco2
+    ## emissions_quantity  0.24670067    0.3960250    0.1117567
+    ## beta_sif            0.59790210    0.6987486    0.1899942
+    ## beta_xch4           0.43929754    0.7656554    0.2883958
+    ## beta_xco2          -0.02663126   -0.1564225    0.2196488
+    ## anomaly_sif         1.00000000    0.6230874    0.2892897
+    ## anomaly_xch4        0.62308744    1.0000000    0.2950208
+    ## anomaly_xco2        0.28928966    0.2950208    1.0000000
+    ## 
+    ## $corrPos
+    ##                 xName              yName x y        corr
+    ## 1  emissions_quantity emissions_quantity 1 7  1.00000000
+    ## 2            beta_sif emissions_quantity 2 7 -0.00418003
+    ## 3            beta_sif           beta_sif 2 6  1.00000000
+    ## 4           beta_xch4 emissions_quantity 3 7  0.54574373
+    ## 5           beta_xch4           beta_sif 3 6  0.13147379
+    ## 6           beta_xch4          beta_xch4 3 5  1.00000000
+    ## 7           beta_xco2 emissions_quantity 4 7 -0.03564856
+    ## 8           beta_xco2           beta_sif 4 6  0.05008150
+    ## 9           beta_xco2          beta_xch4 4 5 -0.22385509
+    ## 10          beta_xco2          beta_xco2 4 4  1.00000000
+    ## 11        anomaly_sif emissions_quantity 5 7  0.24670067
+    ## 12        anomaly_sif           beta_sif 5 6  0.59790210
+    ## 13        anomaly_sif          beta_xch4 5 5  0.43929754
+    ## 14        anomaly_sif          beta_xco2 5 4 -0.02663126
+    ## 15        anomaly_sif        anomaly_sif 5 3  1.00000000
+    ## 16       anomaly_xch4 emissions_quantity 6 7  0.39602503
+    ## 17       anomaly_xch4           beta_sif 6 6  0.69874862
+    ## 18       anomaly_xch4          beta_xch4 6 5  0.76565540
+    ## 19       anomaly_xch4          beta_xco2 6 4 -0.15642252
+    ## 20       anomaly_xch4        anomaly_sif 6 3  0.62308744
+    ## 21       anomaly_xch4       anomaly_xch4 6 2  1.00000000
+    ## 22       anomaly_xco2 emissions_quantity 7 7  0.11175666
+    ## 23       anomaly_xco2           beta_sif 7 6  0.18999422
+    ## 24       anomaly_xco2          beta_xch4 7 5  0.28839581
+    ## 25       anomaly_xco2          beta_xco2 7 4  0.21964877
+    ## 26       anomaly_xco2        anomaly_sif 7 3  0.28928966
+    ## 27       anomaly_xco2       anomaly_xch4 7 2  0.29502077
+    ## 28       anomaly_xco2       anomaly_xco2 7 1  1.00000000
+    ## 
+    ## $arg
+    ## $arg$type
+    ## [1] "upper"
+
+![](README_files/figure-gfm/unnamed-chunk-73-4.png)<!-- -->
+
+    ## $corr
+    ##                    emissions_quantity    beta_sif   beta_xch4   beta_xco2
+    ## emissions_quantity         1.00000000 -0.05849422 -0.12600991  0.09689740
+    ## beta_sif                  -0.05849422  1.00000000 -0.42050427 -0.08048078
+    ## beta_xch4                 -0.12600991 -0.42050427  1.00000000  0.02264240
+    ## beta_xco2                  0.09689740 -0.08048078  0.02264240  1.00000000
+    ## anomaly_sif               -0.11157539  0.64254655 -0.67505830 -0.29220020
+    ## anomaly_xch4               0.10015003  0.70808443 -0.79811821 -0.09327184
+    ## anomaly_xco2              -0.04661620 -0.16445252  0.03729039 -0.10029749
     ##                     anomaly_sif anomaly_xch4 anomaly_xco2
-    ## emissions_quantity -0.298651452  -0.08501938  -0.06868677
-    ## beta_sif           -0.003117177  -0.15031892  -0.07138301
-    ## beta_xch4           0.096981414   0.49864116  -0.11817582
-    ## beta_xco2          -0.010805528   0.02505230  -0.12984808
-    ## anomaly_sif         1.000000000   0.33937879  -0.08635506
-    ## anomaly_xch4        0.339378794   1.00000000  -0.12594990
-    ## anomaly_xco2       -0.086355063  -0.12594990   1.00000000
+    ## emissions_quantity -0.111575392   0.10015003 -0.046616200
+    ## beta_sif            0.642546552   0.70808443 -0.164452522
+    ## beta_xch4          -0.675058297  -0.79811821  0.037290388
+    ## beta_xco2          -0.292200199  -0.09327184 -0.100297486
+    ## anomaly_sif         1.000000000   0.79324697  0.009159494
+    ## anomaly_xch4        0.793246974   1.00000000 -0.094803848
+    ## anomaly_xco2        0.009159494  -0.09480385  1.000000000
     ## 
     ## $corrPos
     ##                 xName              yName x y         corr
     ## 1  emissions_quantity emissions_quantity 1 7  1.000000000
-    ## 2            beta_sif emissions_quantity 2 7 -0.033924591
+    ## 2            beta_sif emissions_quantity 2 7 -0.058494222
     ## 3            beta_sif           beta_sif 2 6  1.000000000
-    ## 4           beta_xch4 emissions_quantity 3 7  0.088394602
-    ## 5           beta_xch4           beta_sif 3 6  0.150253764
+    ## 4           beta_xch4 emissions_quantity 3 7 -0.126009910
+    ## 5           beta_xch4           beta_sif 3 6 -0.420504269
     ## 6           beta_xch4          beta_xch4 3 5  1.000000000
-    ## 7           beta_xco2 emissions_quantity 4 7  0.065092075
-    ## 8           beta_xco2           beta_sif 4 6  0.108626247
-    ## 9           beta_xco2          beta_xch4 4 5 -0.053079455
+    ## 7           beta_xco2 emissions_quantity 4 7  0.096897397
+    ## 8           beta_xco2           beta_sif 4 6 -0.080480779
+    ## 9           beta_xco2          beta_xch4 4 5  0.022642399
     ## 10          beta_xco2          beta_xco2 4 4  1.000000000
-    ## 11        anomaly_sif emissions_quantity 5 7 -0.298651452
-    ## 12        anomaly_sif           beta_sif 5 6 -0.003117177
-    ## 13        anomaly_sif          beta_xch4 5 5  0.096981414
-    ## 14        anomaly_sif          beta_xco2 5 4 -0.010805528
+    ## 11        anomaly_sif emissions_quantity 5 7 -0.111575392
+    ## 12        anomaly_sif           beta_sif 5 6  0.642546552
+    ## 13        anomaly_sif          beta_xch4 5 5 -0.675058297
+    ## 14        anomaly_sif          beta_xco2 5 4 -0.292200199
     ## 15        anomaly_sif        anomaly_sif 5 3  1.000000000
-    ## 16       anomaly_xch4 emissions_quantity 6 7 -0.085019375
-    ## 17       anomaly_xch4           beta_sif 6 6 -0.150318919
-    ## 18       anomaly_xch4          beta_xch4 6 5  0.498641165
-    ## 19       anomaly_xch4          beta_xco2 6 4  0.025052296
-    ## 20       anomaly_xch4        anomaly_sif 6 3  0.339378794
+    ## 16       anomaly_xch4 emissions_quantity 6 7  0.100150029
+    ## 17       anomaly_xch4           beta_sif 6 6  0.708084428
+    ## 18       anomaly_xch4          beta_xch4 6 5 -0.798118206
+    ## 19       anomaly_xch4          beta_xco2 6 4 -0.093271836
+    ## 20       anomaly_xch4        anomaly_sif 6 3  0.793246974
     ## 21       anomaly_xch4       anomaly_xch4 6 2  1.000000000
-    ## 22       anomaly_xco2 emissions_quantity 7 7 -0.068686773
-    ## 23       anomaly_xco2           beta_sif 7 6 -0.071383012
-    ## 24       anomaly_xco2          beta_xch4 7 5 -0.118175817
-    ## 25       anomaly_xco2          beta_xco2 7 4 -0.129848085
-    ## 26       anomaly_xco2        anomaly_sif 7 3 -0.086355063
-    ## 27       anomaly_xco2       anomaly_xch4 7 2 -0.125949899
+    ## 22       anomaly_xco2 emissions_quantity 7 7 -0.046616200
+    ## 23       anomaly_xco2           beta_sif 7 6 -0.164452522
+    ## 24       anomaly_xco2          beta_xch4 7 5  0.037290388
+    ## 25       anomaly_xco2          beta_xco2 7 4 -0.100297486
+    ## 26       anomaly_xco2        anomaly_sif 7 3  0.009159494
+    ## 27       anomaly_xco2       anomaly_xch4 7 2 -0.094803848
     ## 28       anomaly_xco2       anomaly_xco2 7 1  1.000000000
     ## 
     ## $arg
     ## $arg$type
     ## [1] "upper"
 
-![](README_files/figure-gfm/unnamed-chunk-70-5.png)<!-- -->
+![](README_files/figure-gfm/unnamed-chunk-73-5.png)<!-- -->
 
     ## $corr
-    ##                    emissions_quantity   beta_sif  beta_xch4  beta_xco2
-    ## emissions_quantity          1.0000000  0.3070196 -0.2305345 -0.2089289
-    ## beta_sif                    0.3070196  1.0000000 -0.4082705 -0.1569162
-    ## beta_xch4                  -0.2305345 -0.4082705  1.0000000  0.1607721
-    ## beta_xco2                  -0.2089289 -0.1569162  0.1607721  1.0000000
-    ## anomaly_sif                 0.5196137  0.8041371 -0.5607713 -0.1372511
-    ## anomaly_xch4               -0.2409496 -0.4459409  0.1660823  0.1273012
-    ## anomaly_xco2                0.1161149  0.1480225 -0.1374984  0.1863426
+    ##                    emissions_quantity    beta_sif   beta_xch4    beta_xco2
+    ## emissions_quantity          1.0000000 0.174825175  0.43807406 -0.245656351
+    ## beta_sif                    0.1748252 1.000000000  0.55199071  0.009474194
+    ## beta_xch4                   0.4380741 0.551990712  1.00000000 -0.256343896
+    ## beta_xco2                  -0.2456564 0.009474194 -0.25634390  1.000000000
+    ## anomaly_sif                 0.3122418 0.298641425  0.71157042 -0.117422583
+    ## anomaly_xch4               -0.3906256 0.057295716  0.03364481  0.074907113
+    ## anomaly_xco2                0.2805648 0.246528120  0.26273128  0.034902167
     ##                    anomaly_sif anomaly_xch4 anomaly_xco2
-    ## emissions_quantity   0.5196137   -0.2409496    0.1161149
-    ## beta_sif             0.8041371   -0.4459409    0.1480225
-    ## beta_xch4           -0.5607713    0.1660823   -0.1374984
-    ## beta_xco2           -0.1372511    0.1273012    0.1863426
-    ## anomaly_sif          1.0000000   -0.3439105    0.2562056
-    ## anomaly_xch4        -0.3439105    1.0000000    0.1904416
-    ## anomaly_xco2         0.2562056    0.1904416    1.0000000
+    ## emissions_quantity   0.3122418  -0.39062556   0.28056481
+    ## beta_sif             0.2986414   0.05729572   0.24652812
+    ## beta_xch4            0.7115704   0.03364481   0.26273128
+    ## beta_xco2           -0.1174226   0.07490711   0.03490217
+    ## anomaly_sif          1.0000000   0.18786398   0.41602419
+    ## anomaly_xch4         0.1878640   1.00000000   0.11316433
+    ## anomaly_xco2         0.4160242   0.11316433   1.00000000
     ## 
     ## $corrPos
-    ##                 xName              yName x y       corr
-    ## 1  emissions_quantity emissions_quantity 1 7  1.0000000
-    ## 2            beta_sif emissions_quantity 2 7  0.3070196
-    ## 3            beta_sif           beta_sif 2 6  1.0000000
-    ## 4           beta_xch4 emissions_quantity 3 7 -0.2305345
-    ## 5           beta_xch4           beta_sif 3 6 -0.4082705
-    ## 6           beta_xch4          beta_xch4 3 5  1.0000000
-    ## 7           beta_xco2 emissions_quantity 4 7 -0.2089289
-    ## 8           beta_xco2           beta_sif 4 6 -0.1569162
-    ## 9           beta_xco2          beta_xch4 4 5  0.1607721
-    ## 10          beta_xco2          beta_xco2 4 4  1.0000000
-    ## 11        anomaly_sif emissions_quantity 5 7  0.5196137
-    ## 12        anomaly_sif           beta_sif 5 6  0.8041371
-    ## 13        anomaly_sif          beta_xch4 5 5 -0.5607713
-    ## 14        anomaly_sif          beta_xco2 5 4 -0.1372511
-    ## 15        anomaly_sif        anomaly_sif 5 3  1.0000000
-    ## 16       anomaly_xch4 emissions_quantity 6 7 -0.2409496
-    ## 17       anomaly_xch4           beta_sif 6 6 -0.4459409
-    ## 18       anomaly_xch4          beta_xch4 6 5  0.1660823
-    ## 19       anomaly_xch4          beta_xco2 6 4  0.1273012
-    ## 20       anomaly_xch4        anomaly_sif 6 3 -0.3439105
-    ## 21       anomaly_xch4       anomaly_xch4 6 2  1.0000000
-    ## 22       anomaly_xco2 emissions_quantity 7 7  0.1161149
-    ## 23       anomaly_xco2           beta_sif 7 6  0.1480225
-    ## 24       anomaly_xco2          beta_xch4 7 5 -0.1374984
-    ## 25       anomaly_xco2          beta_xco2 7 4  0.1863426
-    ## 26       anomaly_xco2        anomaly_sif 7 3  0.2562056
-    ## 27       anomaly_xco2       anomaly_xch4 7 2  0.1904416
-    ## 28       anomaly_xco2       anomaly_xco2 7 1  1.0000000
+    ##                 xName              yName x y         corr
+    ## 1  emissions_quantity emissions_quantity 1 7  1.000000000
+    ## 2            beta_sif emissions_quantity 2 7  0.174825175
+    ## 3            beta_sif           beta_sif 2 6  1.000000000
+    ## 4           beta_xch4 emissions_quantity 3 7  0.438074063
+    ## 5           beta_xch4           beta_sif 3 6  0.551990712
+    ## 6           beta_xch4          beta_xch4 3 5  1.000000000
+    ## 7           beta_xco2 emissions_quantity 4 7 -0.245656351
+    ## 8           beta_xco2           beta_sif 4 6  0.009474194
+    ## 9           beta_xco2          beta_xch4 4 5 -0.256343896
+    ## 10          beta_xco2          beta_xco2 4 4  1.000000000
+    ## 11        anomaly_sif emissions_quantity 5 7  0.312241849
+    ## 12        anomaly_sif           beta_sif 5 6  0.298641425
+    ## 13        anomaly_sif          beta_xch4 5 5  0.711570419
+    ## 14        anomaly_sif          beta_xco2 5 4 -0.117422583
+    ## 15        anomaly_sif        anomaly_sif 5 3  1.000000000
+    ## 16       anomaly_xch4 emissions_quantity 6 7 -0.390625557
+    ## 17       anomaly_xch4           beta_sif 6 6  0.057295716
+    ## 18       anomaly_xch4          beta_xch4 6 5  0.033644809
+    ## 19       anomaly_xch4          beta_xco2 6 4  0.074907113
+    ## 20       anomaly_xch4        anomaly_sif 6 3  0.187863979
+    ## 21       anomaly_xch4       anomaly_xch4 6 2  1.000000000
+    ## 22       anomaly_xco2 emissions_quantity 7 7  0.280564805
+    ## 23       anomaly_xco2           beta_sif 7 6  0.246528120
+    ## 24       anomaly_xco2          beta_xch4 7 5  0.262731275
+    ## 25       anomaly_xco2          beta_xco2 7 4  0.034902167
+    ## 26       anomaly_xco2        anomaly_sif 7 3  0.416024192
+    ## 27       anomaly_xco2       anomaly_xch4 7 2  0.113164330
+    ## 28       anomaly_xco2       anomaly_xco2 7 1  1.000000000
     ## 
     ## $arg
     ## $arg$type
@@ -2732,53 +3616,53 @@ map(estados[-6],my_corrplot)
 
     ## [[1]]
     ## [[1]]$corr
-    ##                    emissions_quantity   beta_sif  beta_xch4   beta_xco2
-    ## emissions_quantity         1.00000000  0.1324880 -0.0153235  0.07285918
-    ## beta_sif                   0.13248804  1.0000000  0.3515123 -0.11069208
-    ## beta_xch4                 -0.01532350  0.3515123  1.0000000 -0.35710718
-    ## beta_xco2                  0.07285918 -0.1106921 -0.3571072  1.00000000
-    ## anomaly_sif               -0.09837243  0.6259978  0.2194638 -0.16186135
-    ## anomaly_xch4               0.23203487  0.1862960  0.5285885 -0.30175431
-    ## anomaly_xco2               0.14873518  0.1562305  0.3808647  0.23078093
+    ##                    emissions_quantity    beta_sif   beta_xch4    beta_xco2
+    ## emissions_quantity         1.00000000  0.14873419  0.39927857  0.068290722
+    ## beta_sif                   0.14873419  1.00000000 -0.11432897 -0.259431158
+    ## beta_xch4                  0.39927857 -0.11432897  1.00000000  0.275909344
+    ## beta_xco2                  0.06829072 -0.25943116  0.27590934  1.000000000
+    ## anomaly_sif               -0.21316383  0.03236850 -0.70127669 -0.204801774
+    ## anomaly_xch4               0.40842013  0.09156827  0.91415516  0.245724009
+    ## anomaly_xco2               0.13781510  0.41136493  0.02038552  0.004086857
     ##                    anomaly_sif anomaly_xch4 anomaly_xco2
-    ## emissions_quantity -0.09837243    0.2320349    0.1487352
-    ## beta_sif            0.62599776    0.1862960    0.1562305
-    ## beta_xch4           0.21946379    0.5285885    0.3808647
-    ## beta_xco2          -0.16186135   -0.3017543    0.2307809
-    ## anomaly_sif         1.00000000   -0.2641484   -0.1100813
-    ## anomaly_xch4       -0.26414845    1.0000000    0.4714459
-    ## anomaly_xco2       -0.11008130    0.4714459    1.0000000
+    ## emissions_quantity  -0.2131638   0.40842013  0.137815098
+    ## beta_sif             0.0323685   0.09156827  0.411364933
+    ## beta_xch4           -0.7012767   0.91415516  0.020385523
+    ## beta_xco2           -0.2048018   0.24572401  0.004086857
+    ## anomaly_sif          1.0000000  -0.61527589 -0.110828208
+    ## anomaly_xch4        -0.6152759   1.00000000  0.128256899
+    ## anomaly_xco2        -0.1108282   0.12825690  1.000000000
     ## 
     ## [[1]]$corrPos
-    ##                 xName              yName x y        corr
-    ## 1  emissions_quantity emissions_quantity 1 7  1.00000000
-    ## 2            beta_sif emissions_quantity 2 7  0.13248804
-    ## 3            beta_sif           beta_sif 2 6  1.00000000
-    ## 4           beta_xch4 emissions_quantity 3 7 -0.01532350
-    ## 5           beta_xch4           beta_sif 3 6  0.35151231
-    ## 6           beta_xch4          beta_xch4 3 5  1.00000000
-    ## 7           beta_xco2 emissions_quantity 4 7  0.07285918
-    ## 8           beta_xco2           beta_sif 4 6 -0.11069208
-    ## 9           beta_xco2          beta_xch4 4 5 -0.35710718
-    ## 10          beta_xco2          beta_xco2 4 4  1.00000000
-    ## 11        anomaly_sif emissions_quantity 5 7 -0.09837243
-    ## 12        anomaly_sif           beta_sif 5 6  0.62599776
-    ## 13        anomaly_sif          beta_xch4 5 5  0.21946379
-    ## 14        anomaly_sif          beta_xco2 5 4 -0.16186135
-    ## 15        anomaly_sif        anomaly_sif 5 3  1.00000000
-    ## 16       anomaly_xch4 emissions_quantity 6 7  0.23203487
-    ## 17       anomaly_xch4           beta_sif 6 6  0.18629597
-    ## 18       anomaly_xch4          beta_xch4 6 5  0.52858847
-    ## 19       anomaly_xch4          beta_xco2 6 4 -0.30175431
-    ## 20       anomaly_xch4        anomaly_sif 6 3 -0.26414845
-    ## 21       anomaly_xch4       anomaly_xch4 6 2  1.00000000
-    ## 22       anomaly_xco2 emissions_quantity 7 7  0.14873518
-    ## 23       anomaly_xco2           beta_sif 7 6  0.15623052
-    ## 24       anomaly_xco2          beta_xch4 7 5  0.38086473
-    ## 25       anomaly_xco2          beta_xco2 7 4  0.23078093
-    ## 26       anomaly_xco2        anomaly_sif 7 3 -0.11008130
-    ## 27       anomaly_xco2       anomaly_xch4 7 2  0.47144586
-    ## 28       anomaly_xco2       anomaly_xco2 7 1  1.00000000
+    ##                 xName              yName x y         corr
+    ## 1  emissions_quantity emissions_quantity 1 7  1.000000000
+    ## 2            beta_sif emissions_quantity 2 7  0.148734193
+    ## 3            beta_sif           beta_sif 2 6  1.000000000
+    ## 4           beta_xch4 emissions_quantity 3 7  0.399278574
+    ## 5           beta_xch4           beta_sif 3 6 -0.114328968
+    ## 6           beta_xch4          beta_xch4 3 5  1.000000000
+    ## 7           beta_xco2 emissions_quantity 4 7  0.068290722
+    ## 8           beta_xco2           beta_sif 4 6 -0.259431158
+    ## 9           beta_xco2          beta_xch4 4 5  0.275909344
+    ## 10          beta_xco2          beta_xco2 4 4  1.000000000
+    ## 11        anomaly_sif emissions_quantity 5 7 -0.213163832
+    ## 12        anomaly_sif           beta_sif 5 6  0.032368505
+    ## 13        anomaly_sif          beta_xch4 5 5 -0.701276686
+    ## 14        anomaly_sif          beta_xco2 5 4 -0.204801774
+    ## 15        anomaly_sif        anomaly_sif 5 3  1.000000000
+    ## 16       anomaly_xch4 emissions_quantity 6 7  0.408420128
+    ## 17       anomaly_xch4           beta_sif 6 6  0.091568266
+    ## 18       anomaly_xch4          beta_xch4 6 5  0.914155157
+    ## 19       anomaly_xch4          beta_xco2 6 4  0.245724009
+    ## 20       anomaly_xch4        anomaly_sif 6 3 -0.615275894
+    ## 21       anomaly_xch4       anomaly_xch4 6 2  1.000000000
+    ## 22       anomaly_xco2 emissions_quantity 7 7  0.137815098
+    ## 23       anomaly_xco2           beta_sif 7 6  0.411364933
+    ## 24       anomaly_xco2          beta_xch4 7 5  0.020385523
+    ## 25       anomaly_xco2          beta_xco2 7 4  0.004086857
+    ## 26       anomaly_xco2        anomaly_sif 7 3 -0.110828208
+    ## 27       anomaly_xco2       anomaly_xch4 7 2  0.128256899
+    ## 28       anomaly_xco2       anomaly_xco2 7 1  1.000000000
     ## 
     ## [[1]]$arg
     ## [[1]]$arg$type
@@ -2788,53 +3672,53 @@ map(estados[-6],my_corrplot)
     ## 
     ## [[2]]
     ## [[2]]$corr
-    ##                    emissions_quantity    beta_sif   beta_xch4    beta_xco2
-    ## emissions_quantity         1.00000000 -0.17802366 -0.04456933 -0.111521725
-    ## beta_sif                  -0.17802366  1.00000000  0.77794057  0.072008047
-    ## beta_xch4                 -0.04456933  0.77794057  1.00000000  0.058279941
-    ## beta_xco2                 -0.11152172  0.07200805  0.05827994  1.000000000
-    ## anomaly_sif               -0.19746780  0.76465417  0.66819444  0.006901227
-    ## anomaly_xch4              -0.24352846 -0.08588047 -0.25426953  0.081039120
-    ## anomaly_xco2              -0.20981829  0.57403512  0.53479259  0.203218823
-    ##                     anomaly_sif anomaly_xch4 anomaly_xco2
-    ## emissions_quantity -0.197467801  -0.24352846  -0.20981829
-    ## beta_sif            0.764654173  -0.08588047   0.57403512
-    ## beta_xch4           0.668194441  -0.25426953   0.53479259
-    ## beta_xco2           0.006901227   0.08103912   0.20321882
-    ## anomaly_sif         1.000000000  -0.04622247   0.45655245
-    ## anomaly_xch4       -0.046222475   1.00000000   0.02741685
-    ## anomaly_xco2        0.456552448   0.02741685   1.00000000
+    ##                    emissions_quantity   beta_sif   beta_xch4   beta_xco2
+    ## emissions_quantity         1.00000000 -0.1059981 -0.12023791 -0.07830137
+    ## beta_sif                  -0.10599812  1.0000000 -0.80013120  0.17542586
+    ## beta_xch4                 -0.12023791 -0.8001312  1.00000000 -0.17087315
+    ## beta_xco2                 -0.07830137  0.1754259 -0.17087315  1.00000000
+    ## anomaly_sif               -0.26958081 -0.3436575  0.55370755  0.02117601
+    ## anomaly_xch4              -0.34435285  0.4305263 -0.01053552  0.10596751
+    ## anomaly_xco2              -0.20314448 -0.3211388  0.38388402  0.08627408
+    ##                    anomaly_sif anomaly_xch4 anomaly_xco2
+    ## emissions_quantity -0.26958081  -0.34435285  -0.20314448
+    ## beta_sif           -0.34365748   0.43052634  -0.32113883
+    ## beta_xch4           0.55370755  -0.01053552   0.38388402
+    ## beta_xco2           0.02117601   0.10596751   0.08627408
+    ## anomaly_sif         1.00000000   0.50385078   0.54381054
+    ## anomaly_xch4        0.50385078   1.00000000   0.27173252
+    ## anomaly_xco2        0.54381054   0.27173252   1.00000000
     ## 
     ## [[2]]$corrPos
-    ##                 xName              yName x y         corr
-    ## 1  emissions_quantity emissions_quantity 1 7  1.000000000
-    ## 2            beta_sif emissions_quantity 2 7 -0.178023660
-    ## 3            beta_sif           beta_sif 2 6  1.000000000
-    ## 4           beta_xch4 emissions_quantity 3 7 -0.044569329
-    ## 5           beta_xch4           beta_sif 3 6  0.777940565
-    ## 6           beta_xch4          beta_xch4 3 5  1.000000000
-    ## 7           beta_xco2 emissions_quantity 4 7 -0.111521725
-    ## 8           beta_xco2           beta_sif 4 6  0.072008047
-    ## 9           beta_xco2          beta_xch4 4 5  0.058279941
-    ## 10          beta_xco2          beta_xco2 4 4  1.000000000
-    ## 11        anomaly_sif emissions_quantity 5 7 -0.197467801
-    ## 12        anomaly_sif           beta_sif 5 6  0.764654173
-    ## 13        anomaly_sif          beta_xch4 5 5  0.668194441
-    ## 14        anomaly_sif          beta_xco2 5 4  0.006901227
-    ## 15        anomaly_sif        anomaly_sif 5 3  1.000000000
-    ## 16       anomaly_xch4 emissions_quantity 6 7 -0.243528460
-    ## 17       anomaly_xch4           beta_sif 6 6 -0.085880475
-    ## 18       anomaly_xch4          beta_xch4 6 5 -0.254269533
-    ## 19       anomaly_xch4          beta_xco2 6 4  0.081039120
-    ## 20       anomaly_xch4        anomaly_sif 6 3 -0.046222475
-    ## 21       anomaly_xch4       anomaly_xch4 6 2  1.000000000
-    ## 22       anomaly_xco2 emissions_quantity 7 7 -0.209818285
-    ## 23       anomaly_xco2           beta_sif 7 6  0.574035118
-    ## 24       anomaly_xco2          beta_xch4 7 5  0.534792591
-    ## 25       anomaly_xco2          beta_xco2 7 4  0.203218823
-    ## 26       anomaly_xco2        anomaly_sif 7 3  0.456552448
-    ## 27       anomaly_xco2       anomaly_xch4 7 2  0.027416851
-    ## 28       anomaly_xco2       anomaly_xco2 7 1  1.000000000
+    ##                 xName              yName x y        corr
+    ## 1  emissions_quantity emissions_quantity 1 7  1.00000000
+    ## 2            beta_sif emissions_quantity 2 7 -0.10599812
+    ## 3            beta_sif           beta_sif 2 6  1.00000000
+    ## 4           beta_xch4 emissions_quantity 3 7 -0.12023791
+    ## 5           beta_xch4           beta_sif 3 6 -0.80013120
+    ## 6           beta_xch4          beta_xch4 3 5  1.00000000
+    ## 7           beta_xco2 emissions_quantity 4 7 -0.07830137
+    ## 8           beta_xco2           beta_sif 4 6  0.17542586
+    ## 9           beta_xco2          beta_xch4 4 5 -0.17087315
+    ## 10          beta_xco2          beta_xco2 4 4  1.00000000
+    ## 11        anomaly_sif emissions_quantity 5 7 -0.26958081
+    ## 12        anomaly_sif           beta_sif 5 6 -0.34365748
+    ## 13        anomaly_sif          beta_xch4 5 5  0.55370755
+    ## 14        anomaly_sif          beta_xco2 5 4  0.02117601
+    ## 15        anomaly_sif        anomaly_sif 5 3  1.00000000
+    ## 16       anomaly_xch4 emissions_quantity 6 7 -0.34435285
+    ## 17       anomaly_xch4           beta_sif 6 6  0.43052634
+    ## 18       anomaly_xch4          beta_xch4 6 5 -0.01053552
+    ## 19       anomaly_xch4          beta_xco2 6 4  0.10596751
+    ## 20       anomaly_xch4        anomaly_sif 6 3  0.50385078
+    ## 21       anomaly_xch4       anomaly_xch4 6 2  1.00000000
+    ## 22       anomaly_xco2 emissions_quantity 7 7 -0.20314448
+    ## 23       anomaly_xco2           beta_sif 7 6 -0.32113883
+    ## 24       anomaly_xco2          beta_xch4 7 5  0.38388402
+    ## 25       anomaly_xco2          beta_xco2 7 4  0.08627408
+    ## 26       anomaly_xco2        anomaly_sif 7 3  0.54381054
+    ## 27       anomaly_xco2       anomaly_xch4 7 2  0.27173252
+    ## 28       anomaly_xco2       anomaly_xco2 7 1  1.00000000
     ## 
     ## [[2]]$arg
     ## [[2]]$arg$type
@@ -2844,52 +3728,52 @@ map(estados[-6],my_corrplot)
     ## 
     ## [[3]]
     ## [[3]]$corr
-    ##                    emissions_quantity   beta_sif   beta_xch4   beta_xco2
-    ## emissions_quantity         1.00000000  0.2541669 -0.34654819 -0.02718334
-    ## beta_sif                   0.25416689  1.0000000 -0.55360429 -0.07011410
-    ## beta_xch4                 -0.34654819 -0.5536043  1.00000000 -0.06467217
-    ## beta_xco2                 -0.02718334 -0.0701141 -0.06467217  1.00000000
-    ## anomaly_sif                0.29299648  0.7621063 -0.37057679 -0.12726747
-    ## anomaly_xch4               0.01403859  0.1906515 -0.36934119 -0.07679163
-    ## anomaly_xco2               0.16625480  0.1874704 -0.18368474 -0.08091908
+    ##                    emissions_quantity    beta_sif  beta_xch4   beta_xco2
+    ## emissions_quantity         1.00000000 -0.00418003  0.5457437 -0.03564856
+    ## beta_sif                  -0.00418003  1.00000000  0.1314738  0.05008150
+    ## beta_xch4                  0.54574373  0.13147379  1.0000000 -0.22385509
+    ## beta_xco2                 -0.03564856  0.05008150 -0.2238551  1.00000000
+    ## anomaly_sif                0.24670067  0.59790210  0.4392975 -0.02663126
+    ## anomaly_xch4               0.39602503  0.69874862  0.7656554 -0.15642252
+    ## anomaly_xco2               0.11175666  0.18999422  0.2883958  0.21964877
     ##                    anomaly_sif anomaly_xch4 anomaly_xco2
-    ## emissions_quantity   0.2929965   0.01403859   0.16625480
-    ## beta_sif             0.7621063   0.19065145   0.18747042
-    ## beta_xch4           -0.3705768  -0.36934119  -0.18368474
-    ## beta_xco2           -0.1272675  -0.07679163  -0.08091908
-    ## anomaly_sif          1.0000000  -0.10636732   0.34773122
-    ## anomaly_xch4        -0.1063673   1.00000000   0.14567012
-    ## anomaly_xco2         0.3477312   0.14567012   1.00000000
+    ## emissions_quantity  0.24670067    0.3960250    0.1117567
+    ## beta_sif            0.59790210    0.6987486    0.1899942
+    ## beta_xch4           0.43929754    0.7656554    0.2883958
+    ## beta_xco2          -0.02663126   -0.1564225    0.2196488
+    ## anomaly_sif         1.00000000    0.6230874    0.2892897
+    ## anomaly_xch4        0.62308744    1.0000000    0.2950208
+    ## anomaly_xco2        0.28928966    0.2950208    1.0000000
     ## 
     ## [[3]]$corrPos
     ##                 xName              yName x y        corr
     ## 1  emissions_quantity emissions_quantity 1 7  1.00000000
-    ## 2            beta_sif emissions_quantity 2 7  0.25416689
+    ## 2            beta_sif emissions_quantity 2 7 -0.00418003
     ## 3            beta_sif           beta_sif 2 6  1.00000000
-    ## 4           beta_xch4 emissions_quantity 3 7 -0.34654819
-    ## 5           beta_xch4           beta_sif 3 6 -0.55360429
+    ## 4           beta_xch4 emissions_quantity 3 7  0.54574373
+    ## 5           beta_xch4           beta_sif 3 6  0.13147379
     ## 6           beta_xch4          beta_xch4 3 5  1.00000000
-    ## 7           beta_xco2 emissions_quantity 4 7 -0.02718334
-    ## 8           beta_xco2           beta_sif 4 6 -0.07011410
-    ## 9           beta_xco2          beta_xch4 4 5 -0.06467217
+    ## 7           beta_xco2 emissions_quantity 4 7 -0.03564856
+    ## 8           beta_xco2           beta_sif 4 6  0.05008150
+    ## 9           beta_xco2          beta_xch4 4 5 -0.22385509
     ## 10          beta_xco2          beta_xco2 4 4  1.00000000
-    ## 11        anomaly_sif emissions_quantity 5 7  0.29299648
-    ## 12        anomaly_sif           beta_sif 5 6  0.76210631
-    ## 13        anomaly_sif          beta_xch4 5 5 -0.37057679
-    ## 14        anomaly_sif          beta_xco2 5 4 -0.12726747
+    ## 11        anomaly_sif emissions_quantity 5 7  0.24670067
+    ## 12        anomaly_sif           beta_sif 5 6  0.59790210
+    ## 13        anomaly_sif          beta_xch4 5 5  0.43929754
+    ## 14        anomaly_sif          beta_xco2 5 4 -0.02663126
     ## 15        anomaly_sif        anomaly_sif 5 3  1.00000000
-    ## 16       anomaly_xch4 emissions_quantity 6 7  0.01403859
-    ## 17       anomaly_xch4           beta_sif 6 6  0.19065145
-    ## 18       anomaly_xch4          beta_xch4 6 5 -0.36934119
-    ## 19       anomaly_xch4          beta_xco2 6 4 -0.07679163
-    ## 20       anomaly_xch4        anomaly_sif 6 3 -0.10636732
+    ## 16       anomaly_xch4 emissions_quantity 6 7  0.39602503
+    ## 17       anomaly_xch4           beta_sif 6 6  0.69874862
+    ## 18       anomaly_xch4          beta_xch4 6 5  0.76565540
+    ## 19       anomaly_xch4          beta_xco2 6 4 -0.15642252
+    ## 20       anomaly_xch4        anomaly_sif 6 3  0.62308744
     ## 21       anomaly_xch4       anomaly_xch4 6 2  1.00000000
-    ## 22       anomaly_xco2 emissions_quantity 7 7  0.16625480
-    ## 23       anomaly_xco2           beta_sif 7 6  0.18747042
-    ## 24       anomaly_xco2          beta_xch4 7 5 -0.18368474
-    ## 25       anomaly_xco2          beta_xco2 7 4 -0.08091908
-    ## 26       anomaly_xco2        anomaly_sif 7 3  0.34773122
-    ## 27       anomaly_xco2       anomaly_xch4 7 2  0.14567012
+    ## 22       anomaly_xco2 emissions_quantity 7 7  0.11175666
+    ## 23       anomaly_xco2           beta_sif 7 6  0.18999422
+    ## 24       anomaly_xco2          beta_xch4 7 5  0.28839581
+    ## 25       anomaly_xco2          beta_xco2 7 4  0.21964877
+    ## 26       anomaly_xco2        anomaly_sif 7 3  0.28928966
+    ## 27       anomaly_xco2       anomaly_xch4 7 2  0.29502077
     ## 28       anomaly_xco2       anomaly_xco2 7 1  1.00000000
     ## 
     ## [[3]]$arg
@@ -2900,52 +3784,52 @@ map(estados[-6],my_corrplot)
     ## 
     ## [[4]]
     ## [[4]]$corr
-    ##                    emissions_quantity     beta_sif   beta_xch4   beta_xco2
-    ## emissions_quantity         1.00000000 -0.033924591  0.08839460  0.06509208
-    ## beta_sif                  -0.03392459  1.000000000  0.15025376  0.10862625
-    ## beta_xch4                  0.08839460  0.150253764  1.00000000 -0.05307946
-    ## beta_xco2                  0.06509208  0.108626247 -0.05307946  1.00000000
-    ## anomaly_sif               -0.29865145 -0.003117177  0.09698141 -0.01080553
-    ## anomaly_xch4              -0.08501938 -0.150318919  0.49864116  0.02505230
-    ## anomaly_xco2              -0.06868677 -0.071383012 -0.11817582 -0.12984808
+    ##                    emissions_quantity    beta_sif   beta_xch4   beta_xco2
+    ## emissions_quantity         1.00000000 -0.05849422 -0.12600991  0.09689740
+    ## beta_sif                  -0.05849422  1.00000000 -0.42050427 -0.08048078
+    ## beta_xch4                 -0.12600991 -0.42050427  1.00000000  0.02264240
+    ## beta_xco2                  0.09689740 -0.08048078  0.02264240  1.00000000
+    ## anomaly_sif               -0.11157539  0.64254655 -0.67505830 -0.29220020
+    ## anomaly_xch4               0.10015003  0.70808443 -0.79811821 -0.09327184
+    ## anomaly_xco2              -0.04661620 -0.16445252  0.03729039 -0.10029749
     ##                     anomaly_sif anomaly_xch4 anomaly_xco2
-    ## emissions_quantity -0.298651452  -0.08501938  -0.06868677
-    ## beta_sif           -0.003117177  -0.15031892  -0.07138301
-    ## beta_xch4           0.096981414   0.49864116  -0.11817582
-    ## beta_xco2          -0.010805528   0.02505230  -0.12984808
-    ## anomaly_sif         1.000000000   0.33937879  -0.08635506
-    ## anomaly_xch4        0.339378794   1.00000000  -0.12594990
-    ## anomaly_xco2       -0.086355063  -0.12594990   1.00000000
+    ## emissions_quantity -0.111575392   0.10015003 -0.046616200
+    ## beta_sif            0.642546552   0.70808443 -0.164452522
+    ## beta_xch4          -0.675058297  -0.79811821  0.037290388
+    ## beta_xco2          -0.292200199  -0.09327184 -0.100297486
+    ## anomaly_sif         1.000000000   0.79324697  0.009159494
+    ## anomaly_xch4        0.793246974   1.00000000 -0.094803848
+    ## anomaly_xco2        0.009159494  -0.09480385  1.000000000
     ## 
     ## [[4]]$corrPos
     ##                 xName              yName x y         corr
     ## 1  emissions_quantity emissions_quantity 1 7  1.000000000
-    ## 2            beta_sif emissions_quantity 2 7 -0.033924591
+    ## 2            beta_sif emissions_quantity 2 7 -0.058494222
     ## 3            beta_sif           beta_sif 2 6  1.000000000
-    ## 4           beta_xch4 emissions_quantity 3 7  0.088394602
-    ## 5           beta_xch4           beta_sif 3 6  0.150253764
+    ## 4           beta_xch4 emissions_quantity 3 7 -0.126009910
+    ## 5           beta_xch4           beta_sif 3 6 -0.420504269
     ## 6           beta_xch4          beta_xch4 3 5  1.000000000
-    ## 7           beta_xco2 emissions_quantity 4 7  0.065092075
-    ## 8           beta_xco2           beta_sif 4 6  0.108626247
-    ## 9           beta_xco2          beta_xch4 4 5 -0.053079455
+    ## 7           beta_xco2 emissions_quantity 4 7  0.096897397
+    ## 8           beta_xco2           beta_sif 4 6 -0.080480779
+    ## 9           beta_xco2          beta_xch4 4 5  0.022642399
     ## 10          beta_xco2          beta_xco2 4 4  1.000000000
-    ## 11        anomaly_sif emissions_quantity 5 7 -0.298651452
-    ## 12        anomaly_sif           beta_sif 5 6 -0.003117177
-    ## 13        anomaly_sif          beta_xch4 5 5  0.096981414
-    ## 14        anomaly_sif          beta_xco2 5 4 -0.010805528
+    ## 11        anomaly_sif emissions_quantity 5 7 -0.111575392
+    ## 12        anomaly_sif           beta_sif 5 6  0.642546552
+    ## 13        anomaly_sif          beta_xch4 5 5 -0.675058297
+    ## 14        anomaly_sif          beta_xco2 5 4 -0.292200199
     ## 15        anomaly_sif        anomaly_sif 5 3  1.000000000
-    ## 16       anomaly_xch4 emissions_quantity 6 7 -0.085019375
-    ## 17       anomaly_xch4           beta_sif 6 6 -0.150318919
-    ## 18       anomaly_xch4          beta_xch4 6 5  0.498641165
-    ## 19       anomaly_xch4          beta_xco2 6 4  0.025052296
-    ## 20       anomaly_xch4        anomaly_sif 6 3  0.339378794
+    ## 16       anomaly_xch4 emissions_quantity 6 7  0.100150029
+    ## 17       anomaly_xch4           beta_sif 6 6  0.708084428
+    ## 18       anomaly_xch4          beta_xch4 6 5 -0.798118206
+    ## 19       anomaly_xch4          beta_xco2 6 4 -0.093271836
+    ## 20       anomaly_xch4        anomaly_sif 6 3  0.793246974
     ## 21       anomaly_xch4       anomaly_xch4 6 2  1.000000000
-    ## 22       anomaly_xco2 emissions_quantity 7 7 -0.068686773
-    ## 23       anomaly_xco2           beta_sif 7 6 -0.071383012
-    ## 24       anomaly_xco2          beta_xch4 7 5 -0.118175817
-    ## 25       anomaly_xco2          beta_xco2 7 4 -0.129848085
-    ## 26       anomaly_xco2        anomaly_sif 7 3 -0.086355063
-    ## 27       anomaly_xco2       anomaly_xch4 7 2 -0.125949899
+    ## 22       anomaly_xco2 emissions_quantity 7 7 -0.046616200
+    ## 23       anomaly_xco2           beta_sif 7 6 -0.164452522
+    ## 24       anomaly_xco2          beta_xch4 7 5  0.037290388
+    ## 25       anomaly_xco2          beta_xco2 7 4 -0.100297486
+    ## 26       anomaly_xco2        anomaly_sif 7 3  0.009159494
+    ## 27       anomaly_xco2       anomaly_xch4 7 2 -0.094803848
     ## 28       anomaly_xco2       anomaly_xco2 7 1  1.000000000
     ## 
     ## [[4]]$arg
@@ -2956,57 +3840,79 @@ map(estados[-6],my_corrplot)
     ## 
     ## [[5]]
     ## [[5]]$corr
-    ##                    emissions_quantity   beta_sif  beta_xch4  beta_xco2
-    ## emissions_quantity          1.0000000  0.3070196 -0.2305345 -0.2089289
-    ## beta_sif                    0.3070196  1.0000000 -0.4082705 -0.1569162
-    ## beta_xch4                  -0.2305345 -0.4082705  1.0000000  0.1607721
-    ## beta_xco2                  -0.2089289 -0.1569162  0.1607721  1.0000000
-    ## anomaly_sif                 0.5196137  0.8041371 -0.5607713 -0.1372511
-    ## anomaly_xch4               -0.2409496 -0.4459409  0.1660823  0.1273012
-    ## anomaly_xco2                0.1161149  0.1480225 -0.1374984  0.1863426
+    ##                    emissions_quantity    beta_sif   beta_xch4    beta_xco2
+    ## emissions_quantity          1.0000000 0.174825175  0.43807406 -0.245656351
+    ## beta_sif                    0.1748252 1.000000000  0.55199071  0.009474194
+    ## beta_xch4                   0.4380741 0.551990712  1.00000000 -0.256343896
+    ## beta_xco2                  -0.2456564 0.009474194 -0.25634390  1.000000000
+    ## anomaly_sif                 0.3122418 0.298641425  0.71157042 -0.117422583
+    ## anomaly_xch4               -0.3906256 0.057295716  0.03364481  0.074907113
+    ## anomaly_xco2                0.2805648 0.246528120  0.26273128  0.034902167
     ##                    anomaly_sif anomaly_xch4 anomaly_xco2
-    ## emissions_quantity   0.5196137   -0.2409496    0.1161149
-    ## beta_sif             0.8041371   -0.4459409    0.1480225
-    ## beta_xch4           -0.5607713    0.1660823   -0.1374984
-    ## beta_xco2           -0.1372511    0.1273012    0.1863426
-    ## anomaly_sif          1.0000000   -0.3439105    0.2562056
-    ## anomaly_xch4        -0.3439105    1.0000000    0.1904416
-    ## anomaly_xco2         0.2562056    0.1904416    1.0000000
+    ## emissions_quantity   0.3122418  -0.39062556   0.28056481
+    ## beta_sif             0.2986414   0.05729572   0.24652812
+    ## beta_xch4            0.7115704   0.03364481   0.26273128
+    ## beta_xco2           -0.1174226   0.07490711   0.03490217
+    ## anomaly_sif          1.0000000   0.18786398   0.41602419
+    ## anomaly_xch4         0.1878640   1.00000000   0.11316433
+    ## anomaly_xco2         0.4160242   0.11316433   1.00000000
     ## 
     ## [[5]]$corrPos
-    ##                 xName              yName x y       corr
-    ## 1  emissions_quantity emissions_quantity 1 7  1.0000000
-    ## 2            beta_sif emissions_quantity 2 7  0.3070196
-    ## 3            beta_sif           beta_sif 2 6  1.0000000
-    ## 4           beta_xch4 emissions_quantity 3 7 -0.2305345
-    ## 5           beta_xch4           beta_sif 3 6 -0.4082705
-    ## 6           beta_xch4          beta_xch4 3 5  1.0000000
-    ## 7           beta_xco2 emissions_quantity 4 7 -0.2089289
-    ## 8           beta_xco2           beta_sif 4 6 -0.1569162
-    ## 9           beta_xco2          beta_xch4 4 5  0.1607721
-    ## 10          beta_xco2          beta_xco2 4 4  1.0000000
-    ## 11        anomaly_sif emissions_quantity 5 7  0.5196137
-    ## 12        anomaly_sif           beta_sif 5 6  0.8041371
-    ## 13        anomaly_sif          beta_xch4 5 5 -0.5607713
-    ## 14        anomaly_sif          beta_xco2 5 4 -0.1372511
-    ## 15        anomaly_sif        anomaly_sif 5 3  1.0000000
-    ## 16       anomaly_xch4 emissions_quantity 6 7 -0.2409496
-    ## 17       anomaly_xch4           beta_sif 6 6 -0.4459409
-    ## 18       anomaly_xch4          beta_xch4 6 5  0.1660823
-    ## 19       anomaly_xch4          beta_xco2 6 4  0.1273012
-    ## 20       anomaly_xch4        anomaly_sif 6 3 -0.3439105
-    ## 21       anomaly_xch4       anomaly_xch4 6 2  1.0000000
-    ## 22       anomaly_xco2 emissions_quantity 7 7  0.1161149
-    ## 23       anomaly_xco2           beta_sif 7 6  0.1480225
-    ## 24       anomaly_xco2          beta_xch4 7 5 -0.1374984
-    ## 25       anomaly_xco2          beta_xco2 7 4  0.1863426
-    ## 26       anomaly_xco2        anomaly_sif 7 3  0.2562056
-    ## 27       anomaly_xco2       anomaly_xch4 7 2  0.1904416
-    ## 28       anomaly_xco2       anomaly_xco2 7 1  1.0000000
+    ##                 xName              yName x y         corr
+    ## 1  emissions_quantity emissions_quantity 1 7  1.000000000
+    ## 2            beta_sif emissions_quantity 2 7  0.174825175
+    ## 3            beta_sif           beta_sif 2 6  1.000000000
+    ## 4           beta_xch4 emissions_quantity 3 7  0.438074063
+    ## 5           beta_xch4           beta_sif 3 6  0.551990712
+    ## 6           beta_xch4          beta_xch4 3 5  1.000000000
+    ## 7           beta_xco2 emissions_quantity 4 7 -0.245656351
+    ## 8           beta_xco2           beta_sif 4 6  0.009474194
+    ## 9           beta_xco2          beta_xch4 4 5 -0.256343896
+    ## 10          beta_xco2          beta_xco2 4 4  1.000000000
+    ## 11        anomaly_sif emissions_quantity 5 7  0.312241849
+    ## 12        anomaly_sif           beta_sif 5 6  0.298641425
+    ## 13        anomaly_sif          beta_xch4 5 5  0.711570419
+    ## 14        anomaly_sif          beta_xco2 5 4 -0.117422583
+    ## 15        anomaly_sif        anomaly_sif 5 3  1.000000000
+    ## 16       anomaly_xch4 emissions_quantity 6 7 -0.390625557
+    ## 17       anomaly_xch4           beta_sif 6 6  0.057295716
+    ## 18       anomaly_xch4          beta_xch4 6 5  0.033644809
+    ## 19       anomaly_xch4          beta_xco2 6 4  0.074907113
+    ## 20       anomaly_xch4        anomaly_sif 6 3  0.187863979
+    ## 21       anomaly_xch4       anomaly_xch4 6 2  1.000000000
+    ## 22       anomaly_xco2 emissions_quantity 7 7  0.280564805
+    ## 23       anomaly_xco2           beta_sif 7 6  0.246528120
+    ## 24       anomaly_xco2          beta_xch4 7 5  0.262731275
+    ## 25       anomaly_xco2          beta_xco2 7 4  0.034902167
+    ## 26       anomaly_xco2        anomaly_sif 7 3  0.416024192
+    ## 27       anomaly_xco2       anomaly_xch4 7 2  0.113164330
+    ## 28       anomaly_xco2       anomaly_xco2 7 1  1.000000000
     ## 
     ## [[5]]$arg
     ## [[5]]$arg$type
     ## [1] "upper"
+
+``` r
+mf <- matrix(ncol = 6)
+for(i in seq_along(estados[-6])){
+  df <- city_kgr_beta_emission |>
+    as_data_frame() |>
+    filter(abbrev_state == estados[i]) |>
+    select(beta_sif:emissions_quantity) |>
+    relocate(emissions_quantity) |>
+    drop_na()
+  m_aux <-cor(df[1],df[2:7],method = "spearman")
+  rownames(m_aux) <- paste0(estados[i],"-",rownames(m_aux))
+  if(i==1) {
+    mf<-m_aux
+  }else{
+    mf<-rbind(mf,m_aux)
+  }
+}
+corrplot::corrplot(mf, method = "ellipse")
+```
+
+![](README_files/figure-gfm/unnamed-chunk-74-1.png)<!-- -->
 
 ### Verificando maiores cidades emissoras
 
@@ -3035,18 +3941,18 @@ emissions_sources |>
 ```
 
     ## # A tibble: 3 × 32
-    ##   source_id source_name        source_type iso3_country original_inventory_sec…¹
-    ##       <int> <chr>              <chr>       <chr>        <chr>                   
-    ## 1  10844136 São Félix do Xingu <NA>        BRA          cropland-fires          
-    ## 2  21122398 São Félix do Xingu <NA>        BRA          enteric-fermentation-ca…
-    ## 3  20395095 São Félix do Xingu <NA>        BRA          manure-left-on-pasture-…
-    ## # ℹ abbreviated name: ¹​original_inventory_sector
-    ## # ℹ 27 more variables: start_time <date>, end_time <date>, lat <dbl>,
-    ## #   lon <dbl>, geometry_ref <chr>, gas <chr>, emissions_quantity <dbl>,
-    ## #   temporal_granularity <chr>, created_date <date>, modified_date <date>,
-    ## #   directory <chr>, activity <dbl>, activity_units <chr>,
-    ## #   emissions_factor <dbl>, emissions_factor_units <chr>, capacity <dbl>,
-    ## #   capacity_units <chr>, capacity_factor <dbl>, year <dbl>, …
+    ##   source_id iso3_country original_inventory_sector         start_time end_time  
+    ##       <int> <chr>        <chr>                             <date>     <date>    
+    ## 1  10844136 BRA          cropland-fires                    2015-01-01 2015-12-31
+    ## 2  21122398 BRA          enteric-fermentation-cattle-past… 2015-01-01 2015-12-31
+    ## 3  20395095 BRA          manure-left-on-pasture-cattle     2015-01-01 2015-12-31
+    ## # ℹ 27 more variables: temporal_granularity <chr>, gas <chr>,
+    ## #   emissions_quantity <dbl>, created_date <date>, modified_date <date>,
+    ## #   source_name <chr>, source_type <chr>, lat <dbl>, lon <dbl>,
+    ## #   geometry_ref <chr>, directory <chr>, emissions_factor <dbl>,
+    ## #   emissions_factor_units <chr>, capacity <dbl>, capacity_units <chr>,
+    ## #   capacity_factor <dbl>, activity <dbl>, activity_units <chr>, year <dbl>,
+    ## #   sector_name <chr>, sub_sector <chr>, sigla_uf <chr>, nome_regiao <chr>, …
 
 ``` r
   # group_by(sub_sector, sector_name) |>
@@ -3118,7 +4024,7 @@ emissions_sources |>
            size=0.1)
 ```
 
-![](README_files/figure-gfm/unnamed-chunk-72-1.png)<!-- -->
+![](README_files/figure-gfm/unnamed-chunk-76-1.png)<!-- -->
 
 ``` r
 ggsave('top3cidades_emissão_states.png')
@@ -3195,32 +4101,32 @@ map(estados,my_plot_col_states)
 
     ## [[1]]
 
-![](README_files/figure-gfm/unnamed-chunk-73-1.png)<!-- -->
+![](README_files/figure-gfm/unnamed-chunk-77-1.png)<!-- -->
 
     ## 
     ## [[2]]
 
-![](README_files/figure-gfm/unnamed-chunk-73-2.png)<!-- -->
+![](README_files/figure-gfm/unnamed-chunk-77-2.png)<!-- -->
 
     ## 
     ## [[3]]
 
-![](README_files/figure-gfm/unnamed-chunk-73-3.png)<!-- -->
+![](README_files/figure-gfm/unnamed-chunk-77-3.png)<!-- -->
 
     ## 
     ## [[4]]
 
-![](README_files/figure-gfm/unnamed-chunk-73-4.png)<!-- -->
+![](README_files/figure-gfm/unnamed-chunk-77-4.png)<!-- -->
 
     ## 
     ## [[5]]
 
-![](README_files/figure-gfm/unnamed-chunk-73-5.png)<!-- -->
+![](README_files/figure-gfm/unnamed-chunk-77-5.png)<!-- -->
 
     ## 
     ## [[6]]
 
-![](README_files/figure-gfm/unnamed-chunk-73-6.png)<!-- -->
+![](README_files/figure-gfm/unnamed-chunk-77-6.png)<!-- -->
 
 ``` r
 # ggsave('MG_legenda_setor_agr.png', dpi = 3000)
@@ -3287,7 +4193,7 @@ map(estados,my_plot_col_states)
            size=0.1)
 ```
 
-![](README_files/figure-gfm/unnamed-chunk-74-1.png)<!-- -->
+![](README_files/figure-gfm/unnamed-chunk-78-1.png)<!-- -->
 
 ``` r
 # }
@@ -3379,7 +4285,7 @@ emissions_sources |>
   scale_fill_viridis_d(option = 'plasma')
 ```
 
-![](README_files/figure-gfm/unnamed-chunk-76-1.png)<!-- -->
+![](README_files/figure-gfm/unnamed-chunk-80-1.png)<!-- -->
 
 ``` r
 # ggsave('States_emission.png')
@@ -3462,7 +4368,7 @@ emissions_sources |>
   scale_fill_viridis_d()
 ```
 
-![](README_files/figure-gfm/unnamed-chunk-78-1.png)<!-- -->
+![](README_files/figure-gfm/unnamed-chunk-82-1.png)<!-- -->
 
 ``` r
 ggsave('TemporalEmissions-states.png')

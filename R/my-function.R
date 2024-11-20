@@ -188,16 +188,17 @@ get_coord <- function(x, y, type= "Long"){
 rds_reader <- function(path){
   readr::read_rds(path) |>
     mutate(
-      path = stringr::str_remove(path,"output/maps-kgr/kgr-|\\.rds"),
-      year = as.numeric(stringr::str_sub(path,-8,-5)),
-      state = stringr::str_sub(path,-11,-10),
-      variable = stringr::str_extract(path, "^[^\\-]+")
+       path = stringr::str_remove(path,"output/maps-kgr/kgr-|\\.rds"),
+       year = as.numeric(stringr::str_sub(path,-8,-5)),
+       state = stringr::str_extract(path,"(?<=-)[^-]+(?=-)"),
+       variable = stringr::str_extract(path, "^[^\\-]+")
     ) |>
     rename(
       value = var1.pred, value_std = var1.var
     ) |>
     select(-path) |>
-    relocate(variable, state, year)
+    relocate(variable, state, year
+    )
 }
 
 

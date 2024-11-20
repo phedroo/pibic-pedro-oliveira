@@ -254,12 +254,12 @@ citys |>
 ##### PASSO 1 
 ```{r}
 my_year = 2020
-my_state = "GO"
+my_state = estados
 grid <- grid_geral |> 
   mutate(
     state = ifelse(state == "DF","GO",state)
       ) |> 
-  filter(state == my_state) |> 
+  filter(state %in% my_state) |> 
   select(X, Y)
 sp::gridded(grid) = ~ X + Y
 # plot(grid$X,grid$Y,col="red",pch=4)
@@ -267,26 +267,49 @@ sp::gridded(grid) = ~ X + Y
 
 
 ### Agregação dos dados
+
 ```{r}
 dist_agg <- .15 #Distância entre pontos
-grid_agg <- expand.grid(
+# grid_agg <- expand.grid(
+#   X=seq(min(x),max(x),dist_agg), 
+#   Y=seq(min(y),max(y),dist_agg)) |>
+#   mutate(
+#     flag_my_state = my_state,
+#     flag_st = def_pol(X, Y, list_pol[[my_state]]),
+#     flag_df = def_pol(X, Y, list_pol[["DF"]]),
+#     flag = ifelse(flag_my_state == "GO", (flag_st|flag_df),flag_st)
+#   ) |>  filter(flag) |>
+#   dplyr::select(-starts_with("flag"))
+
+grid_agg_new <- expand.grid(
   X=seq(min(x),max(x),dist_agg), 
-  Y=seq(min(y),max(y),dist_agg)) |>
-  mutate(
-    flag_my_state = my_state,
-    flag_st = def_pol(X, Y, list_pol[[my_state]]),
-    flag_df = def_pol(X, Y, list_pol[["DF"]]),
-    flag = ifelse(flag_my_state == "GO", (flag_st|flag_df),flag_st)
-  ) |>  filter(flag) |>
-  dplyr::select(-starts_with("flag"))
+  Y=seq(min(y),max(y),dist_agg))
+
+X_grid_agg_new <- grid_agg_new$X
+Y_grid_agg_new <- grid_agg_new$Y
+vec_state <- 0
+for(i in 1:nrow(grid_agg_new)){
+  vec_state[i] <- "Other"
+  for(j in seq_along(my_state)){
+    lg_v <- def_pol(X_grid_agg_new[i], 
+                    Y_grid_agg_new[i], 
+                    list_pol[[my_state[j]]])
+    if(lg_v) vec_state[i] <- my_state[j]
+  }  
+}
+
+grid_agg <- grid_agg_new |> 
+  add_column(state = vec_state) |> 
+  filter(state != "Other")
 ```
+
 
 ```{r}
 # Isolando o banco de dados, pelo ano
 data_set_aux  <- data_set_me |>
   filter(
     year == my_year,
-    state == my_state) |>
+    state %in% my_state) |>
   dplyr::select(longitude, latitude, xco2)
 ```
 
@@ -337,8 +360,8 @@ form <- xco2 ~ 1
 # Criando o Semivariograma Experimental.
 vari_exp <- gstat::variogram(form, data = data_set_aux,
                       cressie = FALSE,
-                      cutoff = 4, # distância máxima do semivariograma
-                      width = .2) # distancia entre pontos
+                      cutoff = 12, # distância máxima do semivariograma
+                      width = .25) # distancia entre pontos
 vari_exp  |>
   ggplot(aes(x=dist, y=gamma)) +
   geom_point() +
@@ -397,7 +420,7 @@ plot(vari_exp,model=modelo_3, col=1,pl=F,pch=16,cex=1.2,cex.main=7,ylab=list("Se
 # LOOCV - Leave one out cross validation
 conjunto_validacao <- data_set_aux |>
   as_tibble() |>
-  sample_n(50)
+  sample_n(250)
 sp::coordinates(conjunto_validacao) = ~longitude + latitude
 modelos<-list(modelo_1,modelo_2,modelo_3)
 for(j in 1:3){
@@ -422,7 +445,7 @@ for(j in 1:3){
 
 ##### Passo 5 - Selecionado o melhor modelo, vamos guardá-lo
 ```{r}
-modelo <- modelo_2 ## sempre modificar
+modelo <- modelo_1 ## sempre modificar
 # Salvando os parâmetros dos melhores modelo
 model <- modelo |> slice(2) |> pull(model)
 rss <- round(attr(modelo, "SSErr"),4) 
@@ -438,13 +461,17 @@ tibble(
   my_state, my_year, model, c0, c0_c1, a, rss, r2
 ) |> mutate(gde = c0/c0_c1, .after = "a") |>
   rename(state=my_state,year=my_year) |> 
-  write_csv(paste0("output/best-fit/",my_state,"-",my_year,"-xco2.csv"))
+  write_csv(paste0("output/best-fit/",paste(my_state,
+                                            collapse = "_"), 
+                   "-",my_year,"-xco2.csv"))
 
 ls_csv <- list.files("output/best-fit/",full.names = TRUE,pattern = "-xco2.csv")
 map_df(ls_csv, read_csv) |> 
   writexl::write_xlsx("output/semivariogram-models-xco2.xlsx")
 png(filename = paste0("output/semivariogram-img/semivar-xco2-",
-                      my_state,"-",my_year,".png"),
+                      paste(my_state,
+                      collapse = "_"),
+                      "-",my_year,".png"),
     width = 800, height = 600)
 plot(vari_exp,model=modelo,cex.lab=2, col=1,pl=F,pch=16,cex=2.2,ylab=list("Semivariância",cex=2.3),xlab=list("Distância de Separação h (m)",cex=2.3,cex.axis=4))
 dev.off()
@@ -474,11 +501,15 @@ dev.off()
 #        fill="xco2") +
 #   theme_bw()
 # mapa
-# ggsave(paste0("output/maps-kgr/kgr-xco2-",my_state,"-",my_year,".png"), plot = mapa, width = 10, height = 8, dpi = 300)
+# ggsave(paste0("output/maps-kgr/kgr-xco2-",paste(my_state,
+#                                             collapse = "_"),
+#               "-",my_year,".png"), plot = mapa, width = 10, height = 8, dpi = 300)
 # df <- ko_variavel |>
 #   as_tibble() |>
 #   mutate(var1.var = sqrt(var1.var))
-# write_rds(df,paste0("output/maps-kgr/kgr-xco2-",my_state,"-",my_year,".rds"))
+# write_rds(df,paste0("output/maps-kgr/kgr-xco2-",paste(my_state,
+#                                             collapse = "_"), 
+#                     "-",my_year,".rds"))
 ```
 
 ## 2) Análise para XCH~4~
@@ -648,8 +679,8 @@ form <- xch4 ~ 1
 # Criando o Semivariograma Experimental.
 vari_exp <- gstat::variogram(form, data = data_set_aux,
                       cressie = FALSE,
-                      cutoff = 8, # distância máxima do semivariograma
-                      width = .8) # distancia entre pontos
+                      cutoff = 13, # distância máxima do semivariograma
+                      width = 1.4) # distancia entre pontos
 vari_exp  |>
   ggplot(aes(x=dist, y=gamma)) +
   geom_point() +
@@ -659,8 +690,8 @@ vari_exp  |>
 
 ### Passo 3 - Ajuste dos modelos
 ```{r}
-patamar=200
-alcance=2
+patamar=450
+alcance=15
 epepita=1
 modelo_1 <- gstat::fit.variogram(vari_exp,gstat::vgm(patamar,"Sph",alcance,epepita))
 modelo_2 <- gstat::fit.variogram(vari_exp,gstat::vgm(patamar,"Exp",alcance,epepita))
@@ -749,13 +780,13 @@ tibble(
   my_state, my_year, model, c0, c0_c1, a, rss, r2
 ) |> mutate(gde = c0/c0_c1, .after = "a") |>
   rename(state=my_state,year=my_year) |> 
-  write_csv(paste0("output/best-fit/",my_state,"-",my_year,"-xch4.csv"))
+  write_csv(paste0("output/best-fit/",paste(my_state,collapse = "_"),"-",my_year,"-xch4.csv"))
 
 ls_csv <- list.files("output/best-fit/",full.names = TRUE,pattern = "-xch4.csv")
 map_df(ls_csv, read_csv) |> 
   writexl::write_xlsx("output/semivariogram-models-xch4.xlsx")
 png(filename = paste0("output/semivariogram-img/semivar-xch4-",
-                      my_state,"-",my_year,".png"),
+                      paste(my_state,collapse = "_"),"-",my_year,".png"),
     width = 800, height = 600)
 plot(vari_exp,model=modelo,cex.lab=2, col=1,pl=F,pch=16,cex=2.2,ylab=list("Semivariância",cex=2.3),xlab=list("Distância de Separação h (m)",cex=2.3,cex.axis=4))
 dev.off()
@@ -765,7 +796,7 @@ dev.off()
 
 ```{r}
 # ko_variavel <- gstat::krige(formula=form, data_set_aux, grid, model=modelo,
-#                      block=c(0.1,0.1),
+#                     block=c(0.1,0.1),
 #                      nsim=0,
 #                      na.action=na.pass,
 #                      debug.level=-1
@@ -774,7 +805,9 @@ dev.off()
 
 
 
-## Passo 7 Visualização dos padrões espaciais e armazenamento dos dados e imagem.
+
+
+## Passo 7 Visualização dos padrões espaciais e armazenamento dos dados e magem.
 
 ```{r}
 # mapa <- as.tibble(ko_variavel) |>
@@ -787,11 +820,11 @@ dev.off()
 #        fill="xch4") +
 #   theme_bw()
 # mapa
-# ggsave(paste0("output/maps-kgr/kgr-xch4-",my_state,"-",my_year,".png"), plot = mapa, width = 10, height = 8, dpi = 300)
+# ggsave(paste0("output/maps-kgr/kgr-xch4-",paste(my_state,collapse = "_"),"-",my_year,".png"), plot = mapa, width = 10, height = 8, dpi = 300)
 # df <- ko_variavel |>
 #   as.tibble() |>
 #   mutate(var1.var = sqrt(var1.var))
-# write_rds(df,paste0("output/maps-kgr/kgr-xch4-",my_state,"-",my_year,".rds"))
+# write_rds(df,paste0("output/maps-kgr/kgr-xch4-",paste(my_state,collapse = "_"),"-",my_year,".rds"))
 ```
 
 
@@ -892,7 +925,7 @@ writexl::write_xlsx(df,"output/estat-desc-sif.xlsx")
 data_set_aux  <- data_set_me |>
   filter(
     year == my_year,
-    state == my_state) |>
+    state %in% my_state) |>
   group_by(latitude, longitude) |> 
   summarise(
     sif = mean(sif, na.rm = TRUE)
@@ -939,8 +972,8 @@ form <- sif ~ 1
 # Criando o Semivariograma Experimental.
 vari_exp <- gstat::variogram(form, data = data_set_aux,
                       cressie = FALSE,
-                      cutoff = 8, # distância máxima do semivariograma
-                      width = 0.45,
+                      cutoff = 21, # distância máxima do semivariograma
+                      width = 01,
                       cloud = FALSE) # distancia entre ponts
 vari_exp  |>
   ggplot(aes(x=dist, y=gamma)) +
@@ -951,8 +984,8 @@ vari_exp  |>
 
 ### Passo 3 - Ajuste dos modelos
 ```{r}
-patamar=0.05
-alcance=2
+patamar=0.08
+alcance=15
 epepita=0.01
 modelo_1 <- gstat::fit.variogram(vari_exp,gstat::vgm(patamar,"Sph",alcance,epepita))
 modelo_2 <- gstat::fit.variogram(vari_exp,gstat::vgm(patamar,"Exp",alcance,epepita))
@@ -1000,7 +1033,7 @@ plot(vari_exp,model=modelo_3, col=1,pl=F,pch=16,cex=1.2,cex.main=7,ylab=list("Se
 # LOOCV - Leave one out cross validation
 conjunto_validacao <- data_set_aux |>
   as_tibble() |>
-  sample_n(10)
+  sample_n(50)
 sp::coordinates(conjunto_validacao) = ~longitude + latitude
 modelos<-list(modelo_1,modelo_2,modelo_3)
 for(j in 1:3){
@@ -1041,7 +1074,7 @@ tibble(
   my_state, my_year, model, c0, c0_c1, a, rss, r2
 ) |> mutate(gde = c0/c0_c1, .after = "a") |>
   rename(state=my_state,year=my_year) |> 
-  write_csv(paste0("output/best-fit/",my_state,"-",my_year,"-sif.csv"))
+  write_csv(paste0("output/best-fit/",paste(my_state,collapse = "_"),"-",my_year,"-sif.csv"))
 
 ls_csv <- list.files("output/best-fit/",full.names = TRUE,pattern = "-sif.csv")
 map_df(ls_csv, read_csv) |> 
@@ -1079,11 +1112,11 @@ dev.off()
 #        fill="sif") +
 #   theme_bw()
 # mapa
-# ggsave(paste0("output/maps-kgr/kgr-sif-",my_state,"-",my_year,".png"), plot = mapa, width = 10, height = 8, dpi = 300)
+# ggsave(paste0("output/maps-kgr/kgr-sif-",paste(my_state,collapse = "_"),"-",my_year,".png"), plot = mapa, width = 10, height = 8, dpi = 300)
 # df <- ko_variavel |>
 #   as.tibble() |>
 #   mutate(var1.var = sqrt(var1.var))
-# write_rds(df,paste0("output/maps-kgr/kgr-sif-",my_state,"-",my_year,".rds"))
+# write_rds(df,paste0("output/maps-kgr/kgr-sif-",paste(my_state,collapse = "_"),"-",my_year,".rds"))
 ```
 
 
@@ -1091,12 +1124,12 @@ dev.off()
 ### Rodar somente após todos os mapas gerados
 ```{r}
 list_rds <- list.files("output/maps-kgr/",
-           pattern = ".rds$",
+           pattern = "_.*rds$",
            full.names = TRUE)
 kgr_maps <- map_df(list_rds, rds_reader)
 ```
 
-#Cálculo do Beta
+# Cálculo do Beta
 
 ```{r}
 grid_geral_state_city <- read_rds("data/grid-state-city.rds") |> 
@@ -1115,30 +1148,32 @@ glimpse(kgr_maps)
 kgr_maps_detrend <- kgr_maps |>
   group_by(variable) |>
   mutate(
-    value_est = ifelse(variable =="xco2",a_co2+b_co2*(year-min(year)),
-                       ifelse(variable =="xch4",a_ch4+b_ch4*(year-min(year)),value)),
-    delta = ifelse(variable =="sif",value,value_est-value),
-    value_detrend = ifelse(variable =="xco2",(a_co2-delta)-(mean(value)-a_co2),
-                       ifelse(variable =="xch4",(a_ch4-delta)-(mean(value)-a_ch4),value)),
+    value_est = ifelse(variable=="xco2",
+                       a_co2+b_co2*(year-min(year)),
+                       ifelse(variable=="xch4",
+                              a_ch4+b_ch4*(year-min(year)),
+                              value)),
+    delta = ifelse(variable=="sif",value,value_est-value),
+    value_detrend = ifelse(variable =="xco2", (a_co2-delta)-(mean(value)-a_co2),
+                       ifelse(variable =="xch4",
+                              (a_ch4-delta)-(mean(value)-a_ch4),value)),
     value = value_detrend
   ) |> ungroup() |>
   select(-value_est,-delta,-value_detrend)
 
 kgr_maps_detrend |> 
-  filter(variable == "xco2")
+  filter(variable == "xch4")
 ```
 
 ## Cálculo do Beta para cada municípios
 ```{r}
-kgr_maps_detrend <- kgr_maps_detrend |> 
+kgr_maps_detrend_city <- kgr_maps_detrend |> 
+  select(-state) |> 
   left_join(
-    grid_geral |> 
-      mutate(
-        state = ifelse(state == "DF","GO",state)
-      ),
-  by=c("state","X","Y")
+    grid_geral,
+  by=c("X","Y")
   ) |> 
-  group_by(variable, state, year) |> 
+  group_by(variable, year) |> 
   mutate(
     ref_mean = mean(value, na.rm = TRUE),
     anomaly = value - ref_mean
@@ -1147,7 +1182,7 @@ kgr_maps_detrend <- kgr_maps_detrend |>
 
 
 ```{r}
-kgr_maps_nested <- kgr_maps_detrend |>
+kgr_maps_nested <- kgr_maps_detrend_city |>
   group_by(variable,state,city,year) |>
   summarise(
     media = mean(value,na.rm = TRUE),
@@ -1200,6 +1235,55 @@ city_kgr_beta <- left_join(
            by=c("abbrev_state","name_muni"))
 ```
 
+## Mapeando a anomalia
+
+```{r}
+map(2015:2020, ~kgr_maps_detrend_city |> 
+  filter(variable=="sif",year==.x) |> 
+  ggplot(aes(x=X, y=Y)) +
+  geom_tile(aes(fill = anomaly)) +
+  scale_fill_viridis_c(option = "mako") +
+  coord_equal() +
+  labs(x="Longitude",
+       y="Latitude",
+       fill="anomaly_sif") +
+  theme_bw()
+)
+
+```
+
+
+```{r}
+map(2015:2020, ~kgr_maps_detrend_city |> 
+  filter(variable=="xch4",year==.x) |> 
+  ggplot(aes(x=X, y=Y)) +
+  geom_tile(aes(fill = anomaly)) +
+  scale_fill_viridis_c(option = "mako") +
+  coord_equal() +
+  labs(x="Longitude",
+       y="Latitude",
+       fill="anomaly_xch4") +
+  theme_bw()
+)
+
+```
+
+```{r}
+map(2015:2020, ~kgr_maps_detrend_city |> 
+  filter(variable=="xco2",year==.x) |> 
+  ggplot(aes(x=X, y=Y)) +
+  geom_tile(aes(fill = anomaly)) +
+  scale_fill_viridis_c(option = "mako") +
+  coord_equal() +
+  labs(x="Longitude",
+       y="Latitude",
+       fill="anomaly_xco2") +
+  theme_bw()
+)
+
+```
+
+## Mapa dos Betas e Anomalias médias
 
 ```{r}
 city_kgr_beta |>
@@ -1657,7 +1741,25 @@ my_corrplot <- function(.estado){
 }
 map(estados[-6],my_corrplot)
 ```
-
+```{r}
+mf <- matrix(ncol = 6)
+for(i in seq_along(estados[-6])){
+  df <- city_kgr_beta_emission |>
+    as_data_frame() |>
+    filter(abbrev_state == estados[i]) |>
+    select(beta_sif:emissions_quantity) |>
+    relocate(emissions_quantity) |>
+    drop_na()
+  m_aux <-cor(df[1],df[2:7],method = "spearman")
+  rownames(m_aux) <- paste0(estados[i],"-",rownames(m_aux))
+  if(i==1) {
+    mf<-m_aux
+  }else{
+    mf<-rbind(mf,m_aux)
+  }
+}
+corrplot::corrplot(mf, method = "ellipse")
+```
 
 
 ### Verificando maiores cidades emissoras
